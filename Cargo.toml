@@ -4,3 +4,15 @@ version = "0.1.0"
 edition = "2024"
 
 [dependencies]
+salvo = {
+  version = "0.93",
+  features = ["basic-auth", "compression", "logging", "oapi", "trailing-slash"]
+}
+tokio = { version = "1", features = ["full"] }
+tracing = "0.1"
+tracing-subscriber = "0.3"
+
+[profile.release]
+strip = true
+lto = true
+codegen-units = 1
