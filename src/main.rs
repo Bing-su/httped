@@ -5,7 +5,7 @@ use httped::http_methods;
 
 #[endpoint]
 async fn hello(name: QueryParam<String, false>) -> String {
-    format!("Hello, {}!", name.as_deref().unwrap_or_else(|| "World"))
+    format!("Hello, {}!", name.as_deref().unwrap_or("World"))
 }
 
 #[tokio::main]
