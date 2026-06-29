@@ -65,7 +65,7 @@ async fn bearer_auth(
     if token.is_none() {
         return Err(Error::HttpStatus(StatusError::unauthorized()));
     }
-    let token = token.unwrap();
+    let token = token.expect("token should be present");
     let auth = match token.strip_prefix("Bearer ") {
         Some(tk) => tk,
         None => return Err(Error::HttpStatus(StatusError::unauthorized())),
@@ -83,8 +83,8 @@ pub fn auth_router() -> Router {
     let basic_auth_router = Router::new()
         .hoop(save_username_password)
         .hoop(auth_handler)
-        .push(Router::with_path("/basic-auth/{username}/{password}").get(basic_auth));
-    let bearer_auth_router = Router::new().push(Router::with_path("/bearer").get(bearer_auth));
+        .push(Router::with_path("basic-auth/{username}/{password}").get(basic_auth));
+    let bearer_auth_router = Router::new().push(Router::with_path("bearer").get(bearer_auth));
     Router::with_hoop(remove_slash())
         .push(basic_auth_router)
         .push(bearer_auth_router)
