@@ -1,6 +1,7 @@
 use salvo::oapi::extract::*;
 use salvo::prelude::*;
 
+use httped::auth;
 use httped::http_methods;
 
 #[endpoint]
@@ -14,7 +15,8 @@ async fn main() {
 
     let router = Router::new()
         .push(Router::with_path("hello").get(hello))
-        .push(http_methods::http_methods_router());
+        .push(http_methods::http_methods_router())
+        .push(auth::auth_router());
 
     let doc = OpenApi::new("Api", "0.1.0").merge_router(&router);
 
