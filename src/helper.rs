@@ -1,5 +1,6 @@
 use bytes::Bytes;
 use data_encoding::BASE64;
+use rust_embed::RustEmbed;
 
 pub fn encode_string(input: &Bytes, content_type: Option<&str>) -> String {
     match String::from_utf8(input.to_vec()) {
@@ -11,3 +12,7 @@ pub fn encode_string(input: &Bytes, content_type: Option<&str>) -> String {
         ),
     }
 }
+
+#[derive(RustEmbed)]
+#[folder = "src/asset"]
+pub struct Asset;

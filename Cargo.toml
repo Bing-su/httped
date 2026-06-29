@@ -7,6 +7,7 @@ edition = "2024"
 anyhow = "1"
 bytes = "1"
 data-encoding = "2"
+rust-embed = "8"
 salvo = {
   version = "0.93",
   features = [
@@ -15,7 +16,8 @@ salvo = {
     "compression",
     "logging",
     "oapi",
-    "trailing-slash"
+    "serve-static",
+    "trailing-slash",
   ]
 }
 serde = { version = "1", features = ["derive"] }
