@@ -55,7 +55,7 @@ async fn _common(req: &mut Request) -> Result<Json<ResponsePost>> {
         .header("X-Forwarded-For")
         .unwrap_or_else(|| req.remote_addr().to_string());
 
-    let payload = req.payload().await?;
+    let payload = req.payload_with_max_size(1024 * 1024).await?;
     let content_type = headers.get("content-type");
     let data = encode_string(payload, content_type.map(|s| s.as_str()));
 
