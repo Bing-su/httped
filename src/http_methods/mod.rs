@@ -4,6 +4,7 @@ use salvo::oapi::ToSchema;
 use salvo::prelude::*;
 use salvo::trailing_slash::remove_slash;
 use serde::{Deserialize, Serialize};
+use serde_json::Value;
 
 use std::collections::BTreeMap;
 
@@ -26,7 +27,7 @@ struct ResponsePost {
     data: String,
     files: BTreeMap<String, String>,
     form: BTreeMap<String, String>,
-    json: Option<String>,
+    json: Option<Value>,
 }
 
 #[endpoint(tags("http_methods"))]
@@ -59,10 +60,7 @@ async fn _common(req: &mut Request) -> Result<Json<ResponsePost>> {
     let data = encode_string(payload, content_type.map(|s| s.as_str()));
 
     let form: BTreeMap<String, String> = req.parse_form().await.unwrap_or_default();
-    let json = headers
-        .get("content-type")
-        .is_some_and(|content_type| content_type.starts_with("application/json"))
-        .then_some(data.clone());
+    let json: Option<Value> = req.parse_json().await.unwrap_or_default();
 
     let file_parts = req.all_files().await;
     let mut file_vec: Vec<(String, String)> = Vec::with_capacity(file_parts.len());
