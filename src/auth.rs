@@ -1,4 +1,5 @@
 use anyhow::Result;
+use salvo::Error;
 use salvo::basic_auth::{BasicAuth, BasicAuthValidator};
 use salvo::oapi::ToSchema;
 use salvo::oapi::extract::*;
@@ -37,12 +38,18 @@ struct BasicAuthResponse {
     user: String,
 }
 
+#[derive(Serialize, ToSchema)]
+struct BearerResponse {
+    authenticated: bool,
+    token: String,
+}
+
 #[endpoint(tags("auth"), status_codes(200, 401))]
 #[allow(unused_variables)]
 async fn basic_auth(
     username: PathParam<String>,
     password: PathParam<String>,
-) -> Result<Json<BasicAuthResponse>> {
+) -> Result<Json<BasicAuthResponse>, Error> {
     let response = BasicAuthResponse {
         authenticated: true,
         user: username.into_inner(),
@@ -50,10 +57,35 @@ async fn basic_auth(
     Ok(Json(response))
 }
 
+#[endpoint(tags("auth"), status_codes(200, 401))]
+async fn bearer_auth(
+    authorization: HeaderParam<String, false>,
+) -> Result<Json<BearerResponse>, Error> {
+    let token = authorization.into_inner();
+    if token.is_none() {
+        return Err(Error::HttpStatus(StatusError::unauthorized()));
+    }
+    let token = token.unwrap();
+    let auth = match token.strip_prefix("Bearer ") {
+        Some(tk) => tk,
+        None => return Err(Error::HttpStatus(StatusError::unauthorized())),
+    };
+
+    let response = BearerResponse {
+        authenticated: true,
+        token: auth.to_string(),
+    };
+    Ok(Json(response))
+}
+
 pub fn auth_router() -> Router {
     let auth_handler = BasicAuth::new(HttpedBasicAuthValidator);
-    Router::with_hoop(remove_slash())
+    let basic_auth_router = Router::new()
         .hoop(save_username_password)
         .hoop(auth_handler)
-        .push(Router::with_path("/basic-auth/{username}/{password}").get(basic_auth))
+        .push(Router::with_path("/basic-auth/{username}/{password}").get(basic_auth));
+    let bearer_auth_router = Router::new().push(Router::with_path("/bearer").get(bearer_auth));
+    Router::with_hoop(remove_slash())
+        .push(basic_auth_router)
+        .push(bearer_auth_router)
 }
