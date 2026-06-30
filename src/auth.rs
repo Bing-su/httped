@@ -10,7 +10,7 @@ use salvo::prelude::*;
 use salvo::trailing_slash::remove_slash;
 use serde::Serialize;
 
-const BEARER_REGEX: LazyLock<Regex> = LazyLock::new(|| {
+static BEARER_REGEX: LazyLock<Regex> = LazyLock::new(|| {
     Regex::new(r"^Bearer\s+(?P<token>[A-Za-z0-9\-\._~\+/]+=*)$").expect("Must be a valid regex")
 });
 
@@ -79,7 +79,7 @@ async fn bearer_auth(
 
     let response = BearerResponse {
         authenticated: true,
-        token: token,
+        token,
     };
     Ok(Json(response))
 }
