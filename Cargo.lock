@@ -937,6 +937,7 @@ dependencies = [
  "anyhow",
  "bytes",
  "data-encoding",
+ "regex",
  "rust-embed",
  "salvo",
  "serde",
