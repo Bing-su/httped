@@ -30,7 +30,7 @@ struct ResponsePost {
     json: Option<Value>,
 }
 
-#[endpoint(tags("http_methods"), status_codes(200, 400, 500))]
+#[endpoint(tags("Http methods"), status_codes(200, 400, 500))]
 pub async fn get(req: &mut Request) -> Result<Json<ResponseGet>> {
     let queries: BTreeMap<String, String> = req.parse_queries()?;
     let headers: BTreeMap<String, String> = req.parse_headers()?;
@@ -87,37 +87,37 @@ async fn _common(req: &mut Request) -> Result<Json<ResponsePost>> {
     Ok(Json(response))
 }
 
-#[endpoint(tags("http_methods"), status_codes(200, 400, 500))]
+#[endpoint(tags("Http methods"), status_codes(200, 400, 500))]
 pub async fn post(req: &mut Request) -> Result<Json<ResponsePost>> {
     _common(req).await
 }
 
-#[endpoint(tags("http_methods"), status_codes(200, 400, 500))]
+#[endpoint(tags("Http methods"), status_codes(200, 400, 500))]
 pub async fn delete(req: &mut Request) -> Result<Json<ResponsePost>> {
     _common(req).await
 }
 
-#[endpoint(tags("http_methods"), status_codes(200, 400, 500))]
+#[endpoint(tags("Http methods"), status_codes(200, 400, 500))]
 pub async fn put(req: &mut Request) -> Result<Json<ResponsePost>> {
     _common(req).await
 }
 
-#[endpoint(tags("http_methods"), status_codes(200, 400, 500))]
+#[endpoint(tags("Http methods"), status_codes(200, 400, 500))]
 pub async fn patch(req: &mut Request) -> Result<Json<ResponsePost>> {
     _common(req).await
 }
 
-#[endpoint(tags("http_methods"), status_codes(200, 400, 500))]
+#[endpoint(tags("Http methods"), status_codes(200, 400, 500))]
 pub async fn head(req: &mut Request) -> Result<Json<ResponsePost>> {
     _common(req).await
 }
 
-#[endpoint(tags("http_methods"), status_codes(200, 400, 500))]
+#[endpoint(tags("Http methods"), status_codes(200, 400, 500))]
 pub async fn options(req: &mut Request) -> Result<Json<ResponsePost>> {
     _common(req).await
 }
 
-#[endpoint(tags("http_methods"), status_codes(200, 400, 500))]
+#[endpoint(tags("Http methods"), status_codes(200, 400, 500))]
 pub async fn query(req: &mut Request) -> Result<Json<ResponsePost>> {
     _common(req).await
 }

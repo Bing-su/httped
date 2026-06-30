@@ -20,14 +20,14 @@ struct UserAgentResponse {
     user_agent: String,
 }
 
-#[endpoint(tags("request_inspection"), status_codes(200))]
+#[endpoint(tags("Request inspection"), status_codes(200))]
 async fn headers_(req: &mut Request) -> Result<Json<HeadersResponse>> {
     let headers: BTreeMap<String, String> = req.parse_headers()?;
     let response = HeadersResponse { headers };
     Ok(Json(response))
 }
 
-#[endpoint(tags("request_inspection"))]
+#[endpoint(tags("Request inspection"))]
 async fn ip_(req: &mut Request) -> Json<IPResponse> {
     let ip = req
         .header("X-Forwarded-For")
@@ -36,7 +36,7 @@ async fn ip_(req: &mut Request) -> Json<IPResponse> {
     Json(response)
 }
 
-#[endpoint(tags("request_inspection"))]
+#[endpoint(tags("Request inspection"))]
 async fn user_agent_(req: &mut Request) -> Json<UserAgentResponse> {
     let user_agent = req.header("User-Agent").unwrap_or_default();
     let response = UserAgentResponse { user_agent };
