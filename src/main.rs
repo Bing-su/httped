@@ -6,6 +6,7 @@ use httped::auth;
 use httped::helper::Asset;
 use httped::http_methods;
 use httped::request_inspection;
+use httped::status_codes;
 
 #[endpoint]
 async fn hello(name: QueryParam<String, false>) -> String {
@@ -21,6 +22,7 @@ async fn main() {
         .push(http_methods::http_methods_router())
         .push(auth::auth_router())
         .push(request_inspection::request_inspection_router())
+        .push(status_codes::status_codes_router())
         .push(Router::with_path("asset/{*path}").get(static_embed::<Asset>()));
 
     let doc = OpenApi::new("Api", "0.1.0").merge_router(&router);
