@@ -10,7 +10,7 @@ data-encoding = "2"
 regex = "1"
 rust-embed = "8"
 salvo = {
-  version = "0.93",
+  version = "0.94",
   features = [
     "anyhow",
     "basic-auth",
