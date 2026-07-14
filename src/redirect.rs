@@ -57,7 +57,11 @@ async fn redirect_to_options(param: RedirectToQueryParams, res: &mut Response) -
 }
 
 #[endpoint(tags("Redirects"), status_codes(200, 400, 500))]
-async fn absolute_redirect(n: PathParam<u8>, res: &mut Response) -> salvo::Result<()> {
+async fn absolute_redirect(
+    n: PathParam<u8>,
+    req: &mut Request,
+    res: &mut Response,
+) -> salvo::Result<()> {
     let n = n.into_inner();
     if n == 0 {
         return Err(salvo::Error::HttpStatus(
@@ -65,18 +69,25 @@ async fn absolute_redirect(n: PathParam<u8>, res: &mut Response) -> salvo::Resul
         ));
     }
 
-    if n == 1 {
-        res.render(Redirect::found("/get"));
-        return Ok(());
-    }
-
-    let next = format!("{}", n - 1);
+    let uri = req.uri().to_string();
+    let base = uri
+        .strip_suffix(&format!("/absolute-redirect/{n}"))
+        .unwrap_or_default();
+    let next = if n == 1 {
+        format!("{base}/get")
+    } else {
+        format!("{base}/absolute-redirect/{}", n - 1)
+    };
     res.render(Redirect::found(next));
     Ok(())
 }
 
 #[endpoint(tags("Redirects"), status_codes(200, 400, 500))]
-async fn relative_redirect(n: PathParam<u8>, res: &mut Response) -> salvo::Result<()> {
+async fn relative_redirect(
+    n: PathParam<u8>,
+    req: &mut Request,
+    res: &mut Response,
+) -> salvo::Result<()> {
     let n = n.into_inner();
     if n == 0 {
         return Err(salvo::Error::HttpStatus(
@@ -84,14 +95,17 @@ async fn relative_redirect(n: PathParam<u8>, res: &mut Response) -> salvo::Resul
         ));
     }
 
-    res.status_code(StatusCode::FOUND);
-    if n == 1 {
-        res.add_header("Location", "/get", true)?;
-        return Ok(());
-    }
-
-    let next = format!("{}", n - 1);
-    res.add_header("Location", &next, true)?;
+    let base = req
+        .uri()
+        .path()
+        .strip_suffix(&format!("/relative-redirect/{n}"))
+        .unwrap_or_default();
+    let next = if n == 1 {
+        format!("{base}/get")
+    } else {
+        format!("{base}/relative-redirect/{}", n - 1)
+    };
+    res.render(Redirect::found(next));
     Ok(())
 }
 
@@ -109,4 +123,29 @@ pub fn redirect_router() -> Router {
         )
         .push(Router::with_path("absolute-redirect/{n}").get(absolute_redirect))
         .push(Router::with_path("relative-redirect/{n}").get(relative_redirect))
+}
+
+#[cfg(test)]
+mod tests {
+    use salvo::{http::header::LOCATION, test::TestClient};
+
+    use super::*;
+
+    #[tokio::test]
+    async fn redirects_preserve_mount_and_semantics() {
+        let service = Service::new(Router::with_path("api").push(redirect_router()));
+
+        let absolute = TestClient::get("https://localhost:8443/api/absolute-redirect/2")
+            .send(&service)
+            .await;
+        let relative = TestClient::get("http://localhost/api/relative-redirect/1")
+            .send(&service)
+            .await;
+
+        assert_eq!(
+            absolute.headers()[LOCATION],
+            "https://localhost:8443/api/absolute-redirect/1"
+        );
+        assert_eq!(relative.headers()[LOCATION], "/api/get");
+    }
 }
