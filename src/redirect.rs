@@ -1,5 +1,4 @@
 use anyhow::Result;
-use salvo::oapi::extract::PathParam;
 use salvo::prelude::*;
 use salvo::trailing_slash::remove_slash;
 use serde::Deserialize;
@@ -8,6 +7,12 @@ use serde::Deserialize;
 struct RedirectToQueryParams {
     url: String,
     status_code: Option<u16>,
+}
+
+#[derive(Deserialize, ToParameters, Debug)]
+struct RedirectPathParams {
+    #[salvo(parameter(minimum = 1, parameter_in = "path"))]
+    n: u8,
 }
 
 fn _redirect_to(param: RedirectToQueryParams, res: &mut Response) -> Result<()> {
@@ -58,11 +63,11 @@ async fn redirect_to_options(param: RedirectToQueryParams, res: &mut Response) -
 
 #[endpoint(tags("Redirects"), status_codes(200, 400, 500))]
 async fn absolute_redirect(
-    n: PathParam<u8>,
+    param: RedirectPathParams,
     req: &mut Request,
     res: &mut Response,
 ) -> salvo::Result<()> {
-    let n = n.into_inner();
+    let n = param.n;
     if n == 0 {
         return Err(salvo::Error::HttpStatus(
             StatusError::bad_request().brief("n must be greater than 0"),
@@ -84,11 +89,11 @@ async fn absolute_redirect(
 
 #[endpoint(tags("Redirects"), status_codes(200, 400, 500))]
 async fn relative_redirect(
-    n: PathParam<u8>,
+    param: RedirectPathParams,
     req: &mut Request,
     res: &mut Response,
 ) -> salvo::Result<()> {
-    let n = n.into_inner();
+    let n = param.n;
     if n == 0 {
         return Err(salvo::Error::HttpStatus(
             StatusError::bad_request().brief("n must be greater than 0"),
