@@ -14,5 +14,5 @@ pub fn encode_string(input: &Bytes, content_type: Option<&str>) -> String {
 }
 
 #[derive(RustEmbed)]
-#[folder = "src/asset"]
+#[folder = "asset"]
 pub struct Asset;

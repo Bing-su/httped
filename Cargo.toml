@@ -8,7 +8,10 @@ anyhow = "1"
 bytes = "1"
 data-encoding = "2"
 regex = "1"
-rust-embed = "8"
+rust-embed = {
+  version = "8",
+  features = ["compression", "deterministic-timestamps"]
+}
 salvo = {
   version = "0.94",
   features = [
