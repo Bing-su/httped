@@ -8,7 +8,9 @@ use httped::helper::Asset;
 use httped::http_methods;
 use httped::redirect;
 use httped::request_inspection;
+use httped::sse;
 use httped::status_codes;
+use httped::websocket;
 
 #[derive(Serialize, ToSchema, Debug)]
 struct ResponseHealth {
@@ -33,6 +35,8 @@ async fn main() {
         .push(request_inspection::request_inspection_router())
         .push(status_codes::status_codes_router())
         .push(redirect::redirect_router())
+        .push(websocket::ws_router())
+        .push(sse::sse_router())
         .push(Router::with_path("asset/{*path}").get(static_embed::<Asset>()));
 
     let doc = OpenApi::new("Api", "0.1.0").merge_router(&router);
