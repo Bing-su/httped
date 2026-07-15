@@ -76,6 +76,8 @@ async fn absolute_redirect(
 
     let uri = req.uri().to_string();
     let base = uri
+        .split_once('?')
+        .map_or(uri.as_str(), |(path, _)| path)
         .strip_suffix(&format!("/absolute-redirect/{n}"))
         .unwrap_or_default();
     let next = if n == 1 {
@@ -132,20 +134,26 @@ pub fn redirect_router() -> Router {
 
 #[cfg(test)]
 mod tests {
+    use rstest::*;
     use salvo::{http::header::LOCATION, test::TestClient};
 
     use super::*;
 
+    #[rstest]
+    #[case::without_query(
+        "https://localhost:8443/api/absolute-redirect/2",
+        "http://localhost/api/relative-redirect/1"
+    )]
+    #[case::with_query(
+        "https://localhost:8443/api/absolute-redirect/2?foo=bar",
+        "http://localhost/api/relative-redirect/1?foo=bar"
+    )]
     #[tokio::test]
-    async fn redirects_preserve_mount_and_semantics() {
+    async fn redirects_preserve_mount_and_semantics(#[case] abs: &str, #[case] rel: &str) {
         let service = Service::new(Router::with_path("api").push(redirect_router()));
 
-        let absolute = TestClient::get("https://localhost:8443/api/absolute-redirect/2")
-            .send(&service)
-            .await;
-        let relative = TestClient::get("http://localhost/api/relative-redirect/1")
-            .send(&service)
-            .await;
+        let absolute = TestClient::get(abs).send(&service).await;
+        let relative = TestClient::get(rel).send(&service).await;
 
         assert_eq!(
             absolute.headers()[LOCATION],
