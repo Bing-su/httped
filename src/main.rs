@@ -1,6 +1,7 @@
-use salvo::oapi::extract::*;
+use salvo::oapi::ToSchema;
 use salvo::prelude::*;
 use salvo::serve_static::static_embed;
+use serde::Serialize;
 
 use httped::auth;
 use httped::helper::Asset;
@@ -9,9 +10,16 @@ use httped::redirect;
 use httped::request_inspection;
 use httped::status_codes;
 
+#[derive(Serialize, ToSchema, Debug)]
+struct ResponseHealth {
+    message: String,
+}
+
 #[endpoint]
-async fn hello(name: QueryParam<String, false>) -> String {
-    format!("Hello, {}!", name.as_deref().unwrap_or("World"))
+async fn health() -> Json<ResponseHealth> {
+    Json(ResponseHealth {
+        message: "ok".to_string(),
+    })
 }
 
 #[tokio::main]
@@ -19,7 +27,7 @@ async fn main() {
     tracing_subscriber::fmt().init();
 
     let router = Router::new()
-        .push(Router::with_path("hello").get(hello))
+        .push(Router::with_path("health").get(health))
         .push(http_methods::http_methods_router())
         .push(auth::auth_router())
         .push(request_inspection::request_inspection_router())
