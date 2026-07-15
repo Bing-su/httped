@@ -3,7 +3,7 @@ use salvo::trailing_slash::remove_slash;
 use salvo::websocket::WebSocketUpgrade;
 use tracing;
 
-#[endpoint(tags("WebSocket"), status_codes(200, 400, 500))]
+#[endpoint(tags("Websocket"), status_codes(200, 400, 500))]
 async fn echo(req: &mut Request, res: &mut Response) -> Result<(), StatusError> {
     WebSocketUpgrade::new()
         .upgrade(req, res, |mut ws| async move {
