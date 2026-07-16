@@ -74,6 +74,8 @@ pub fn build_service() -> Service {
 }
 
 pub async fn entry() -> Result<()> {
+    tracing_subscriber::fmt().init();
+
     let args = Cli::parse();
     let service = build_service();
 

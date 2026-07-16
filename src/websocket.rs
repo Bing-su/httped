@@ -46,10 +46,11 @@ mod tests {
         tokio::spawn(Server::new(acceptor).serve(ws_router()));
 
         let (mut socket, _) = connect_async(format!("ws://{addr}/ws/echo")).await.unwrap();
-        let message = Message::Text("hello".into());
 
-        socket.send(message.clone()).await.unwrap();
-
-        assert_eq!(socket.next().await.unwrap().unwrap(), message);
+        for _ in 0..10 {
+            let message = Message::Text("hello".into());
+            socket.send(message.clone()).await.unwrap();
+            assert_eq!(socket.next().await.unwrap().unwrap(), message);
+        }
     }
 }
