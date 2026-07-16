@@ -6,6 +6,7 @@ use salvo::serve_static::static_embed;
 use serde::Serialize;
 
 use crate::auth;
+use crate::dynamic_data;
 use crate::helper::Asset;
 use crate::http_methods;
 use crate::redirect;
@@ -51,6 +52,7 @@ pub fn build_router() -> Router {
         .push(redirect::redirect_router())
         .push(websocket::ws_router())
         .push(sse::sse_router())
+        .push(dynamic_data::dynamic_data_router())
         .push(Router::with_path("asset/{*path}").get(static_embed::<Asset>()));
 
     let doc = OpenApi::new(PROJECT_NAME, PROJECT_VERSION).merge_router(&router);

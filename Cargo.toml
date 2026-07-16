@@ -9,13 +9,14 @@ async-stream = "0.3"
 bytes = "1"
 clap = { version = "4", features = ["derive", "env", "unicode", "wrap_help"] }
 data-encoding = "2"
+rand = { version = "0.10", features = ["chacha"] }
 regex = "1"
 rust-embed = {
   version = "8",
   features = ["compression", "deterministic-timestamps"]
 }
 salvo = {
-  version = "0.94",
+  version = "0.95",
   features = [
     "anyhow",
     "basic-auth",
@@ -35,6 +36,8 @@ tokio = { version = "1", features = ["full"] }
 tokio-stream = "0.1"
 tracing = "0.1"
 tracing-subscriber = "0.3"
+ulid = "3"
+uuid = { version = "1", features = ["v4", "v7"] }
 
 [dev-dependencies]
 futures-util = "0.3"
