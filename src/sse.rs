@@ -9,6 +9,9 @@ use salvo::trailing_slash::remove_slash;
 use serde::{Deserialize, Serialize};
 use serde_json::json;
 
+const DEFAULT_INTERVAL: f64 = 0.1;
+const DEFAULT_TIMEOUT: u64 = 30;
+
 #[derive(Serialize, Deserialize, ToParameters, ToSchema, Debug)]
 struct CounterParams {
     #[salvo(parameter(parameter_in = "path", default = 3))]
@@ -28,7 +31,7 @@ struct TextRequest {
 #[endpoint(tags("SSE"), status_codes(200, 400, 500))]
 async fn counter_text(param: CounterParams, res: &mut Response) {
     let count = param.count;
-    let itv = param.interval.unwrap_or(0.1);
+    let itv = param.interval.unwrap_or(DEFAULT_INTERVAL);
     let event_stream = stream! {
         for i in 1..=count {
             if itv > 0.0 {
@@ -46,7 +49,7 @@ async fn counter_text(param: CounterParams, res: &mut Response) {
 #[endpoint(tags("SSE"), status_codes(200, 400, 500))]
 async fn counter_json(param: CounterParams, res: &mut Response) {
     let count = param.count;
-    let itv = param.interval.unwrap_or(0.1);
+    let itv = param.interval.unwrap_or(DEFAULT_INTERVAL);
     let event_stream = stream! {
         for i in 1..=count {
             if itv > 0.0 {
@@ -63,7 +66,7 @@ async fn counter_json(param: CounterParams, res: &mut Response) {
 
 #[endpoint(tags("SSE"), status_codes(200, 400, 500))]
 async fn split_text(body: JsonBody<TextRequest>, res: &mut Response) {
-    let itv = body.interval.unwrap_or(0.1);
+    let itv = body.interval.unwrap_or(DEFAULT_INTERVAL);
     let event_stream = stream! {
         for line in body.text.lines() {
             if itv > 0.0 {
@@ -80,6 +83,7 @@ async fn split_text(body: JsonBody<TextRequest>, res: &mut Response) {
 
 pub fn sse_router() -> Router {
     Router::with_hoop(remove_slash())
+        .hoop(Timeout::new(Duration::from_secs(DEFAULT_TIMEOUT)))
         .push(Router::with_path("sse/counter/text/{count}").get(counter_text))
         .push(Router::with_path("sse/counter/json/{count}").get(counter_json))
         .push(Router::with_path("sse/text").post(split_text))

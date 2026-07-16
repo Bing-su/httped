@@ -24,6 +24,7 @@ salvo = {
     "oapi",
     "serve-static",
     "sse",
+    "timeout",
     "trailing-slash",
     "websocket",
   ]
