@@ -57,19 +57,18 @@ pub fn build_router() -> Router {
     let doc = OpenApi::new(PROJECT_NAME, PROJECT_VERSION).merge_router(&router);
 
     let openapi = Scalar::new("openapi.json").lib_url("asset/scalar.js");
-    let router = router
-        .unshift(doc.into_router("openapi.json"))
-        .push(Router::new().goal(openapi));
+
     router
+        .unshift(doc.into_router("openapi.json"))
+        .push(Router::new().goal(openapi))
 }
 
 pub fn build_service() -> Service {
     let router = build_router();
 
-    let service = Service::new(router)
+    Service::new(router)
         .hoop(Logger::new())
-        .hoop(Compression::new());
-    service
+        .hoop(Compression::new())
 }
 
 pub async fn entry() -> Result<(), String> {

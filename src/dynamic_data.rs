@@ -51,7 +51,7 @@ fn disposition_header(filename: Option<String>) -> String {
             let encoded = utf8_percent_encode(&name, NON_ALPHANUMERIC).to_string();
             format!(
                 "attachment; filename={}; filename*=utf-8''{}",
-                &encoded, &encoded
+                encoded, encoded
             )
         }
         None => "attachment".to_string(),

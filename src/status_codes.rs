@@ -10,13 +10,11 @@ struct StatusCodeResponse {
 }
 
 fn _common(res: &mut Response, code: u16) -> Result<Json<StatusCodeResponse>, Error> {
-    if !(100..=999).contains(&code) {
-        return Err(Error::HttpStatus(
+    res.status_code(StatusCode::from_u16(code).map_err(|_| {
+        Error::HttpStatus(
             StatusError::bad_request().brief("status code must be between 100 and 999"),
-        ));
-    }
-
-    res.status_code(StatusCode::from_u16(code).expect("just checked that code is valid"));
+        )
+    })?);
     let response = StatusCodeResponse { code };
     Ok(Json(response))
 }
