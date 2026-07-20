@@ -15,23 +15,23 @@ const MAX_BYTES: u32 = 1000000; // 1 MB
 
 #[derive(Serialize, Deserialize, ToParameters, ToSchema, Debug)]
 struct BytesSimpleRequest {
-    #[salvo(parameter(parameter_in = "path", minimum = 0, maximum = 1000000))]
+    #[salvo(parameter(parameter_in = "path", minimum = 0, maximum = 1000000, default = 1024))]
     n: u32,
     #[salvo(parameter(parameter_in = "query", minimum = 0))]
     seed: Option<u64>,
-    #[salvo(parameter(parameter_in = "query"))]
+    #[salvo(parameter(parameter_in = "query", min_length = 1, max_length = 128))]
     filename: Option<String>,
 }
 
 #[derive(Serialize, Deserialize, ToParameters, ToSchema, Debug)]
 struct BytesStreamRequest {
-    #[salvo(parameter(parameter_in = "path", minimum = 0, maximum = 1000000))]
+    #[salvo(parameter(parameter_in = "path", minimum = 0, maximum = 1000000, default = 1024))]
     n: u32,
     #[salvo(parameter(parameter_in = "query", minimum = 0))]
     seed: Option<u64>,
     #[salvo(parameter(parameter_in = "query", minimum = 1, default = 8192))]
     chunk_size: Option<usize>,
-    #[salvo(parameter(parameter_in = "query"))]
+    #[salvo(parameter(parameter_in = "query", min_length = 1, max_length = 128))]
     filename: Option<String>,
 }
 
