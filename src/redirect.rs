@@ -1,4 +1,3 @@
-use percent_encoding::{NON_ALPHANUMERIC, utf8_percent_encode};
 use salvo::prelude::*;
 use salvo::trailing_slash::remove_slash;
 use serde::Deserialize;
@@ -16,7 +15,7 @@ struct RedirectPathParams {
 }
 
 fn _redirect_to(param: RedirectToQueryParams, res: &mut Response) -> Result<(), StatusError> {
-    let url = utf8_percent_encode(&param.url, NON_ALPHANUMERIC).to_string();
+    let url = param.url;
 
     let code = match param.status_code {
         Some(x) if (300..400).contains(&x) => {
