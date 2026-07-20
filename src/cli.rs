@@ -1,4 +1,3 @@
-use anyhow::Result;
 use clap::Parser;
 use salvo::oapi::ToSchema;
 use salvo::prelude::*;
@@ -73,7 +72,7 @@ pub fn build_service() -> Service {
     service
 }
 
-pub async fn entry() -> Result<()> {
+pub async fn entry() -> Result<(), String> {
     tracing_subscriber::fmt().init();
 
     let args = Cli::parse();
@@ -87,7 +86,7 @@ pub async fn entry() -> Result<()> {
         Err(e) => {
             let msg = format!("Failed to bind to {}:{} - {}", args.host, args.port, e);
             tracing::error!("{}", msg);
-            return Err(anyhow::anyhow!(msg));
+            return Err(msg);
         }
     }
     Ok(())

@@ -1,6 +1,5 @@
 use std::sync::LazyLock;
 
-use anyhow::Result;
 use regex::Regex;
 use salvo::Error;
 use salvo::basic_auth::{BasicAuth, BasicAuthValidator};
@@ -67,13 +66,13 @@ async fn basic_auth(
 #[endpoint(tags("Auth"), status_codes(200, 400, 401))]
 async fn bearer_auth(
     authorization: HeaderParam<String, false>,
-) -> Result<Json<BearerResponse>, Error> {
-    let header = authorization.into_inner().ok_or_else(|| {
-        Error::HttpStatus(StatusError::unauthorized().brief("Missing authorization header"))
-    })?;
-    let auth = BEARER_REGEX.captures(&header).ok_or_else(|| {
-        Error::HttpStatus(StatusError::bad_request().brief("Invalid authorization header"))
-    })?;
+) -> Result<Json<BearerResponse>, StatusError> {
+    let header = authorization
+        .into_inner()
+        .ok_or_else(|| StatusError::unauthorized().brief("Missing authorization header"))?;
+    let auth = BEARER_REGEX
+        .captures(&header)
+        .ok_or_else(|| StatusError::bad_request().brief("Invalid authorization header"))?;
 
     let token = auth["token"].to_string();
 

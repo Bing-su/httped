@@ -96,7 +96,7 @@ async fn split_json(
 ) -> Result<(), StatusError> {
     let itv = interval.interval.unwrap_or(DEFAULT_INTERVAL);
     let json_text = serde_json::to_string_pretty(&body.into_inner())
-        .map_err(|e| StatusError::bad_request().brief(e.to_string()))?;
+        .map_err(|e| StatusError::internal_server_error().brief(e.to_string()))?;
     let event_stream = stream! {
         for line in json_text.lines() {
             if itv > 0.0 {

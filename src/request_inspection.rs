@@ -1,4 +1,3 @@
-use anyhow::Result;
 use salvo::prelude::*;
 use salvo::trailing_slash::remove_slash;
 use serde::Serialize;
@@ -21,10 +20,10 @@ struct UserAgentResponse {
 }
 
 #[endpoint(tags("Request inspection"), status_codes(200))]
-async fn headers_(req: &mut Request) -> Result<Json<HeadersResponse>> {
-    let headers: BTreeMap<String, String> = req.parse_headers()?;
+async fn headers_(req: &mut Request) -> Json<HeadersResponse> {
+    let headers: BTreeMap<String, String> = req.parse_headers().unwrap_or_default();
     let response = HeadersResponse { headers };
-    Ok(Json(response))
+    Json(response)
 }
 
 #[endpoint(tags("Request inspection"))]

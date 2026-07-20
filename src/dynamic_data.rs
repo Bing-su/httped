@@ -1,9 +1,9 @@
 use std::convert::Infallible;
 
-use anyhow::Result;
 use async_stream::stream;
 use rand::prelude::*;
 use rand::rngs::ChaCha20Rng;
+use salvo::Error;
 use salvo::prelude::*;
 use salvo::trailing_slash::remove_slash;
 use serde::{Deserialize, Serialize};
@@ -40,7 +40,7 @@ struct UlidResponse {
 }
 
 #[endpoint(tags("Dynamic data"), status_codes(200, 400, 500))]
-async fn bytes_simple(param: BytesSimpleRequest, res: &mut Response) -> Result<()> {
+async fn bytes_simple(param: BytesSimpleRequest, res: &mut Response) -> Result<(), Error> {
     let n = param.n.min(MAX_BYTES) as usize;
     let mut rng: ChaCha20Rng = match param.seed {
         Some(seed) => ChaCha20Rng::seed_from_u64(seed),
@@ -55,7 +55,7 @@ async fn bytes_simple(param: BytesSimpleRequest, res: &mut Response) -> Result<(
 }
 
 #[endpoint(tags("Dynamic data"), status_codes(200, 400, 500))]
-async fn bytes_stream(param: BytesStreamRequest, res: &mut Response) -> Result<()> {
+async fn bytes_stream(param: BytesStreamRequest, res: &mut Response) -> Result<(), Error> {
     let mut rng: ChaCha20Rng = match param.seed {
         Some(seed) => ChaCha20Rng::seed_from_u64(seed),
         None => rand::make_rng(),

@@ -1,4 +1,3 @@
-use anyhow::Result;
 use bytes::Bytes;
 use salvo::oapi::ToSchema;
 use salvo::prelude::*;
@@ -31,9 +30,9 @@ struct ResponsePost {
 }
 
 #[endpoint(tags("Http methods"), status_codes(200, 400, 500))]
-pub async fn get(req: &mut Request) -> Result<Json<ResponseGet>> {
-    let queries: BTreeMap<String, String> = req.parse_queries()?;
-    let headers: BTreeMap<String, String> = req.parse_headers()?;
+async fn get(req: &mut Request) -> Json<ResponseGet> {
+    let queries: BTreeMap<String, String> = req.parse_queries().unwrap_or_default();
+    let headers: BTreeMap<String, String> = req.parse_headers().unwrap_or_default();
     let url: String = req.uri().to_string();
     let origin: String = req
         .header("X-Forwarded-For")
@@ -44,18 +43,21 @@ pub async fn get(req: &mut Request) -> Result<Json<ResponseGet>> {
         origin,
         url,
     };
-    Ok(Json(response))
+    Json(response)
 }
 
-async fn _common(req: &mut Request) -> Result<Json<ResponsePost>> {
-    let queries: BTreeMap<String, String> = req.parse_queries()?;
-    let headers: BTreeMap<String, String> = req.parse_headers()?;
+async fn _common(req: &mut Request) -> Result<Json<ResponsePost>, StatusError> {
+    let queries: BTreeMap<String, String> = req.parse_queries().unwrap_or_default();
+    let headers: BTreeMap<String, String> = req.parse_headers().unwrap_or_default();
     let url: String = req.uri().to_string();
     let origin: String = req
         .header("X-Forwarded-For")
         .unwrap_or_else(|| req.remote_addr().to_string());
 
-    let payload = req.payload_with_max_size(1024 * 1024).await?;
+    let payload = req
+        .payload_with_max_size(1024 * 1024)
+        .await
+        .map_err(|_| StatusError::bad_request().brief("Payload size exceeds the limit of 1MB"))?;
     let content_type = headers.get("content-type");
     let data = encode_string(payload, content_type.map(|s| s.as_str()));
 
@@ -88,37 +90,37 @@ async fn _common(req: &mut Request) -> Result<Json<ResponsePost>> {
 }
 
 #[endpoint(tags("Http methods"), status_codes(200, 400, 500))]
-pub async fn post(req: &mut Request) -> Result<Json<ResponsePost>> {
+pub async fn post(req: &mut Request) -> Result<Json<ResponsePost>, StatusError> {
     _common(req).await
 }
 
 #[endpoint(tags("Http methods"), status_codes(200, 400, 500))]
-pub async fn delete(req: &mut Request) -> Result<Json<ResponsePost>> {
+pub async fn delete(req: &mut Request) -> Result<Json<ResponsePost>, StatusError> {
     _common(req).await
 }
 
 #[endpoint(tags("Http methods"), status_codes(200, 400, 500))]
-pub async fn put(req: &mut Request) -> Result<Json<ResponsePost>> {
+pub async fn put(req: &mut Request) -> Result<Json<ResponsePost>, StatusError> {
     _common(req).await
 }
 
 #[endpoint(tags("Http methods"), status_codes(200, 400, 500))]
-pub async fn patch(req: &mut Request) -> Result<Json<ResponsePost>> {
+pub async fn patch(req: &mut Request) -> Result<Json<ResponsePost>, StatusError> {
     _common(req).await
 }
 
 #[endpoint(tags("Http methods"), status_codes(200, 400, 500))]
-pub async fn head(req: &mut Request) -> Result<Json<ResponsePost>> {
+pub async fn head(req: &mut Request) -> Result<Json<ResponsePost>, StatusError> {
     _common(req).await
 }
 
 #[endpoint(tags("Http methods"), status_codes(200, 400, 500))]
-pub async fn options(req: &mut Request) -> Result<Json<ResponsePost>> {
+pub async fn options(req: &mut Request) -> Result<Json<ResponsePost>, StatusError> {
     _common(req).await
 }
 
 #[endpoint(tags("Http methods"), status_codes(200, 400, 500))]
-pub async fn query(req: &mut Request) -> Result<Json<ResponsePost>> {
+pub async fn query(req: &mut Request) -> Result<Json<ResponsePost>, StatusError> {
     _common(req).await
 }
 

@@ -1,4 +1,3 @@
-use anyhow::Result;
 use salvo::prelude::*;
 use salvo::trailing_slash::remove_slash;
 use serde::Deserialize;
@@ -15,49 +14,74 @@ struct RedirectPathParams {
     n: u8,
 }
 
-fn _redirect_to(param: RedirectToQueryParams, res: &mut Response) -> Result<()> {
+fn _redirect_to(param: RedirectToQueryParams, res: &mut Response) -> Result<(), StatusError> {
     let url = param.url;
 
     let code = match param.status_code {
-        Some(x) if (300..400).contains(&x) => StatusCode::from_u16(x)?,
+        Some(x) if (300..400).contains(&x) => {
+            StatusCode::from_u16(x).expect("Status code 300-399 is valid")
+        }
         _ => StatusCode::FOUND,
     };
-    res.render(Redirect::with_status_code(code, &url)?);
+    let redirect = Redirect::with_status_code(code, &url)
+        .map_err(|_| StatusError::bad_request().brief("Invalid URL"))?;
+    res.render(redirect);
     Ok(())
 }
 
 #[endpoint(tags("Redirects"), status_codes(200, 400, 500))]
-async fn redirect_to_get(param: RedirectToQueryParams, res: &mut Response) -> Result<()> {
+async fn redirect_to_get(
+    param: RedirectToQueryParams,
+    res: &mut Response,
+) -> Result<(), StatusError> {
     _redirect_to(param, res)
 }
 
 #[endpoint(tags("Redirects"), status_codes(200, 400, 500))]
-async fn redirect_to_post(param: RedirectToQueryParams, res: &mut Response) -> Result<()> {
+async fn redirect_to_post(
+    param: RedirectToQueryParams,
+    res: &mut Response,
+) -> Result<(), StatusError> {
     _redirect_to(param, res)
 }
 
 #[endpoint(tags("Redirects"), status_codes(200, 400, 500))]
-async fn redirect_to_delete(param: RedirectToQueryParams, res: &mut Response) -> Result<()> {
+async fn redirect_to_delete(
+    param: RedirectToQueryParams,
+    res: &mut Response,
+) -> Result<(), StatusError> {
     _redirect_to(param, res)
 }
 
 #[endpoint(tags("Redirects"), status_codes(200, 400, 500))]
-async fn redirect_to_put(param: RedirectToQueryParams, res: &mut Response) -> Result<()> {
+async fn redirect_to_put(
+    param: RedirectToQueryParams,
+    res: &mut Response,
+) -> Result<(), StatusError> {
     _redirect_to(param, res)
 }
 
 #[endpoint(tags("Redirects"), status_codes(200, 400, 500))]
-async fn redirect_to_patch(param: RedirectToQueryParams, res: &mut Response) -> Result<()> {
+async fn redirect_to_patch(
+    param: RedirectToQueryParams,
+    res: &mut Response,
+) -> Result<(), StatusError> {
     _redirect_to(param, res)
 }
 
 #[endpoint(tags("Redirects"), status_codes(200, 400, 500))]
-async fn redirect_to_head(param: RedirectToQueryParams, res: &mut Response) -> Result<()> {
+async fn redirect_to_head(
+    param: RedirectToQueryParams,
+    res: &mut Response,
+) -> Result<(), StatusError> {
     _redirect_to(param, res)
 }
 
 #[endpoint(tags("Redirects"), status_codes(200, 400, 500))]
-async fn redirect_to_options(param: RedirectToQueryParams, res: &mut Response) -> Result<()> {
+async fn redirect_to_options(
+    param: RedirectToQueryParams,
+    res: &mut Response,
+) -> Result<(), StatusError> {
     _redirect_to(param, res)
 }
 
@@ -66,12 +90,10 @@ async fn absolute_redirect(
     param: RedirectPathParams,
     req: &mut Request,
     res: &mut Response,
-) -> salvo::Result<()> {
+) -> Result<(), StatusError> {
     let n = param.n;
     if n == 0 {
-        return Err(salvo::Error::HttpStatus(
-            StatusError::bad_request().brief("n must be greater than 0"),
-        ));
+        return Err(StatusError::bad_request().brief("n must be greater than 0"));
     }
 
     let uri = req.uri().to_string();
@@ -94,12 +116,10 @@ async fn relative_redirect(
     param: RedirectPathParams,
     req: &mut Request,
     res: &mut Response,
-) -> salvo::Result<()> {
+) -> Result<(), StatusError> {
     let n = param.n;
     if n == 0 {
-        return Err(salvo::Error::HttpStatus(
-            StatusError::bad_request().brief("n must be greater than 0"),
-        ));
+        return Err(StatusError::bad_request().brief("n must be greater than 0"));
     }
 
     let base = req
@@ -160,5 +180,28 @@ mod tests {
             "https://localhost:8443/api/absolute-redirect/1"
         );
         assert_eq!(relative.headers()[LOCATION], "/api/get");
+    }
+
+    #[endpoint]
+    async fn _get(res: &mut Response) {
+        res.render("ok");
+    }
+
+    #[tokio::test]
+    async fn redirect_to_with_status_code() {
+        let service = Service::new(redirect_router().push(Router::with_path("get").get(_get)));
+
+        for code in 300..400 {
+            let response = TestClient::get(&format!(
+                "http://localhost/redirect-to?url=http%3A%2F%2Flocalhost%2Fget&status_code={code}"
+            ))
+            .send(&service)
+            .await;
+
+            assert_eq!(
+                response.status_code,
+                Some(StatusCode::from_u16(code).unwrap())
+            );
+        }
     }
 }
