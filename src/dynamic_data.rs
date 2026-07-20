@@ -1,9 +1,11 @@
 use std::convert::Infallible;
 
 use async_stream::stream;
+use percent_encoding::{NON_ALPHANUMERIC, utf8_percent_encode};
 use rand::prelude::*;
 use rand::rngs::ChaCha20Rng;
 use salvo::Error;
+use salvo::http::header::{CONTENT_DISPOSITION, CONTENT_LENGTH, CONTENT_TYPE};
 use salvo::prelude::*;
 use salvo::trailing_slash::remove_slash;
 use serde::{Deserialize, Serialize};
@@ -17,6 +19,8 @@ struct BytesSimpleRequest {
     n: u32,
     #[salvo(parameter(parameter_in = "query", minimum = 0))]
     seed: Option<u64>,
+    #[salvo(parameter(parameter_in = "query"))]
+    filename: Option<String>,
 }
 
 #[derive(Serialize, Deserialize, ToParameters, ToSchema, Debug)]
@@ -27,6 +31,8 @@ struct BytesStreamRequest {
     seed: Option<u64>,
     #[salvo(parameter(parameter_in = "query", minimum = 1, default = 8192))]
     chunk_size: Option<usize>,
+    #[salvo(parameter(parameter_in = "query"))]
+    filename: Option<String>,
 }
 
 #[derive(Serialize, ToSchema, Debug)]
@@ -39,6 +45,19 @@ struct UlidResponse {
     ulid: String,
 }
 
+fn disposition_header(filename: Option<String>) -> String {
+    match filename {
+        Some(name) => {
+            let encoded = utf8_percent_encode(&name, NON_ALPHANUMERIC).to_string();
+            format!(
+                "attachment; filename={}; filename*=utf-8''{}",
+                &encoded, &encoded
+            )
+        }
+        None => "attachment".to_string(),
+    }
+}
+
 #[endpoint(tags("Dynamic data"), status_codes(200, 400, 500))]
 async fn bytes_simple(param: BytesSimpleRequest, res: &mut Response) -> Result<(), Error> {
     let n = param.n.min(MAX_BYTES) as usize;
@@ -48,8 +67,13 @@ async fn bytes_simple(param: BytesSimpleRequest, res: &mut Response) -> Result<(
     };
     let mut bytes: Vec<u8> = vec![0; n];
     rng.fill_bytes(&mut bytes);
-    res.add_header("Content-Type", "application/octet-stream", true)?;
-    res.add_header("Content-Length", n, true)?;
+    res.add_header(CONTENT_TYPE, "application/octet-stream", true)?;
+    res.add_header(CONTENT_LENGTH, n, true)?;
+    res.add_header(
+        CONTENT_DISPOSITION,
+        disposition_header(param.filename),
+        true,
+    )?;
     res.write_body(bytes)?;
     Ok(())
 }
@@ -72,8 +96,13 @@ async fn bytes_stream(param: BytesStreamRequest, res: &mut Response) -> Result<(
         }
         None => DEFAULT_CHUNK_SIZE,
     };
-    res.add_header("Content-Type", "application/octet-stream", true)?;
-    res.add_header("Content-Length", n, true)?;
+    res.add_header(CONTENT_TYPE, "application/octet-stream", true)?;
+    res.add_header(CONTENT_LENGTH, n, true)?;
+    res.add_header(
+        CONTENT_DISPOSITION,
+        disposition_header(param.filename),
+        true,
+    )?;
     res.stream(stream! {
         while remaining > 0 {
             let mut bytes = vec![0; remaining.min(chk)];
