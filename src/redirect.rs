@@ -1,3 +1,4 @@
+use percent_encoding::{NON_ALPHANUMERIC, utf8_percent_encode};
 use salvo::prelude::*;
 use salvo::trailing_slash::remove_slash;
 use serde::Deserialize;
@@ -15,7 +16,7 @@ struct RedirectPathParams {
 }
 
 fn _redirect_to(param: RedirectToQueryParams, res: &mut Response) -> Result<(), StatusError> {
-    let url = param.url;
+    let url = utf8_percent_encode(&param.url, NON_ALPHANUMERIC).to_string();
 
     let code = match param.status_code {
         Some(x) if (300..400).contains(&x) => {
@@ -188,12 +189,30 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn redirect_to_with_status_code() {
-        let service = Service::new(redirect_router().push(Router::with_path("get").get(_get)));
+    async fn redirect_to_get_with_status_code() {
+        let service = Service::new(redirect_router().push(Router::with_path("겟").get(_get)));
 
         for code in 300..400 {
             let response = TestClient::get(&format!(
-                "http://localhost/redirect-to?url=http%3A%2F%2Flocalhost%2Fget&status_code={code}"
+                "http://localhost/redirect-to?url=http%3A%2F%2Flocalhost%2F%EA%B2%9F&status_code={code}"
+            ))
+            .send(&service)
+            .await;
+
+            assert_eq!(
+                response.status_code,
+                Some(StatusCode::from_u16(code).unwrap())
+            );
+        }
+    }
+
+    #[tokio::test]
+    async fn redirect_to_post_with_status_code() {
+        let service = Service::new(redirect_router().push(Router::with_path("🤗").post(_get)));
+
+        for code in 300..400 {
+            let response = TestClient::post(&format!(
+                "http://localhost/redirect-to?url=http://localhost/🤗&status_code={code}"
             ))
             .send(&service)
             .await;
