@@ -2,6 +2,10 @@ use std::convert::Infallible;
 use std::time::Duration;
 
 use async_stream::stream;
+use rand::distr::Alphanumeric;
+use rand::prelude::*;
+use rand::rngs::ChaCha20Rng;
+use rand::seq::IndexedRandom;
 use salvo::oapi::extract::*;
 use salvo::prelude::*;
 use salvo::sse::{SseEvent, SseKeepAlive};
@@ -22,6 +26,14 @@ struct CounterParams {
 struct IntervalParams {
     #[salvo(parameter(parameter_in = "query", default = 0.1, minimum = 0.0))]
     interval: Option<f64>,
+}
+
+#[derive(Serialize, Deserialize, ToParameters, ToSchema, Debug)]
+struct RandomParams {
+    #[salvo(parameter(parameter_in = "path", default = 3))]
+    n: u32,
+    #[salvo(parameter(parameter_in = "query"))]
+    seed: Option<u64>,
 }
 
 #[derive(Serialize, Deserialize, ToSchema, Debug)]
@@ -112,6 +124,57 @@ async fn split_json(
     Ok(())
 }
 
+fn random_string(rng: &mut ChaCha20Rng) -> String {
+    let length = rng.random_range(4..=32);
+    rng.sample_iter(Alphanumeric)
+        .take(length)
+        .map(char::from)
+        .collect()
+}
+
+#[endpoint(tags("SSE"), status_codes(200, 400, 500))]
+async fn random_sse(interval: IntervalParams, rparam: RandomParams, res: &mut Response) {
+    let itv = interval.interval.unwrap_or(DEFAULT_INTERVAL);
+    let mut rng: ChaCha20Rng = match rparam.seed {
+        Some(seed) => ChaCha20Rng::seed_from_u64(seed),
+        None => rand::make_rng(),
+    };
+    let num_events = rparam.n;
+    let choices = [(1, 0.8), (2, 0.1), (3, 0.05), (4, 0.03), (5, 0.02)];
+    let event_stream = stream! {
+        for _ in 0..num_events {
+            if itv > 0.0 {
+                tokio::time::sleep(Duration::from_secs_f64(itv)).await;
+            }
+
+            if rng.random_bool(0.05) {
+                yield Ok::<_, Infallible>(SseEvent::default().comment(random_string(&mut rng)));
+            }
+
+            let mut event = SseEvent::default();
+
+            if rng.random_bool(0.25) {
+                event = event.id(random_string(&mut rng));
+            }
+
+            if rng.random_bool(0.25) {
+                event = event.name(random_string(&mut rng));
+            }
+
+            let num_lines = choices.choose_weighted(&mut rng, |item| item.1).unwrap().0;
+            let value: Vec<String> = (0..num_lines)
+                .map(|_| random_string(&mut rng))
+                .collect();
+
+            yield Ok(event.text(value.join("\n")));
+        };
+    };
+    SseKeepAlive::new(event_stream)
+        .max_interval(Duration::from_secs(5))
+        .comment(format!("/sse/random/{num_events}"))
+        .stream(res);
+}
+
 pub fn sse_router() -> Router {
     Router::with_hoop(remove_slash())
         .hoop(Timeout::new(Duration::from_secs(DEFAULT_TIMEOUT)))
@@ -119,6 +182,7 @@ pub fn sse_router() -> Router {
         .push(Router::with_path("sse/counter/json/{count}").get(counter_json))
         .push(Router::with_path("sse/text").post(split_text))
         .push(Router::with_path("sse/json").post(split_json))
+        .push(Router::with_path("sse/random/{n}").get(random_sse))
 }
 
 #[cfg(test)]
