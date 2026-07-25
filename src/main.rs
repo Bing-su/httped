@@ -4,5 +4,6 @@ use httped::cli::entry;
 async fn main() {
     if let Err(e) = entry().await {
         eprintln!("{}", e);
+        std::process::exit(1);
     }
 }

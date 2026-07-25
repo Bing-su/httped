@@ -1,3 +1,5 @@
+use std::time::Duration;
+
 use clap::Parser;
 use salvo::oapi::ToSchema;
 use salvo::prelude::*;
@@ -81,7 +83,19 @@ pub async fn entry() -> Result<(), String> {
         .try_bind()
         .await;
     match acceptor {
-        Ok(acceptor) => Server::new(acceptor).serve(service).await,
+        Ok(acceptor) => {
+            let server = Server::new(acceptor);
+            let handle = server.handle();
+
+            tokio::spawn(async move {
+                tokio::signal::ctrl_c()
+                    .await
+                    .expect("Failed to listen for Ctrl+C");
+                handle.stop_graceful(Some(Duration::from_secs(5)));
+            });
+
+            server.serve(service).await;
+        }
         Err(e) => {
             let msg = format!("Failed to bind to {}:{} - {}", args.host, args.port, e);
             tracing::error!("{}", msg);
