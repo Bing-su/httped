@@ -171,7 +171,7 @@ async fn random_sse(interval: IntervalParams, rparam: RandomParams, res: &mut Re
     };
     SseKeepAlive::new(event_stream)
         .max_interval(Duration::from_secs(5))
-        .comment(format!("/sse/random/{num_events}"))
+        .comment(format!("/sse/random-string/{num_events}"))
         .stream(res);
 }
 
@@ -182,7 +182,7 @@ pub fn sse_router() -> Router {
         .push(Router::with_path("sse/counter/json/{count}").get(counter_json))
         .push(Router::with_path("sse/text").post(split_text))
         .push(Router::with_path("sse/json").post(split_json))
-        .push(Router::with_path("sse/random/{n}").get(random_sse))
+        .push(Router::with_path("sse/random-string/{n}").get(random_sse))
 }
 
 #[cfg(test)]
