@@ -50,7 +50,11 @@ struct BearerResponse {
     token: String,
 }
 
-#[endpoint(tags("Auth"), status_codes(200, 401))]
+#[endpoint(
+    tags("Auth"),
+    status_codes(200, 401),
+    description = "Authenticates with HTTP Basic authentication."
+)]
 #[allow(unused_variables)]
 async fn basic_auth(
     username: PathParam<String>,
@@ -63,7 +67,11 @@ async fn basic_auth(
     Ok(Json(response))
 }
 
-#[endpoint(tags("Auth"), status_codes(200, 400, 401))]
+#[endpoint(
+    tags("Auth"),
+    status_codes(200, 400, 401),
+    description = "Validates a Bearer token."
+)]
 async fn bearer_auth(
     authorization: HeaderParam<String, false>,
 ) -> Result<Json<BearerResponse>, StatusError> {

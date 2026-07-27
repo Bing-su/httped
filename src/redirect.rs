@@ -4,12 +4,15 @@ use serde::Deserialize;
 
 #[derive(Deserialize, ToParameters, Debug)]
 struct RedirectToQueryParams {
+    /// Redirect target URL.
     url: String,
+    /// Redirect status code.
     status_code: Option<u16>,
 }
 
 #[derive(Deserialize, ToParameters, Debug)]
 struct RedirectPathParams {
+    /// Number of redirects.
     #[salvo(parameter(minimum = 1, parameter_in = "path"))]
     n: u8,
 }
@@ -29,7 +32,11 @@ fn _redirect_to(param: RedirectToQueryParams, res: &mut Response) -> Result<(), 
     Ok(())
 }
 
-#[endpoint(tags("Redirects"), status_codes(200, 400, 500))]
+#[endpoint(
+    tags("Redirects"),
+    status_codes(200, 400, 500),
+    description = "Redirects a GET request."
+)]
 async fn redirect_to_get(
     param: RedirectToQueryParams,
     res: &mut Response,
@@ -37,7 +44,11 @@ async fn redirect_to_get(
     _redirect_to(param, res)
 }
 
-#[endpoint(tags("Redirects"), status_codes(200, 400, 500))]
+#[endpoint(
+    tags("Redirects"),
+    status_codes(200, 400, 500),
+    description = "Redirects a POST request."
+)]
 async fn redirect_to_post(
     param: RedirectToQueryParams,
     res: &mut Response,
@@ -45,7 +56,11 @@ async fn redirect_to_post(
     _redirect_to(param, res)
 }
 
-#[endpoint(tags("Redirects"), status_codes(200, 400, 500))]
+#[endpoint(
+    tags("Redirects"),
+    status_codes(200, 400, 500),
+    description = "Redirects a DELETE request."
+)]
 async fn redirect_to_delete(
     param: RedirectToQueryParams,
     res: &mut Response,
@@ -53,7 +68,11 @@ async fn redirect_to_delete(
     _redirect_to(param, res)
 }
 
-#[endpoint(tags("Redirects"), status_codes(200, 400, 500))]
+#[endpoint(
+    tags("Redirects"),
+    status_codes(200, 400, 500),
+    description = "Redirects a PUT request."
+)]
 async fn redirect_to_put(
     param: RedirectToQueryParams,
     res: &mut Response,
@@ -61,7 +80,11 @@ async fn redirect_to_put(
     _redirect_to(param, res)
 }
 
-#[endpoint(tags("Redirects"), status_codes(200, 400, 500))]
+#[endpoint(
+    tags("Redirects"),
+    status_codes(200, 400, 500),
+    description = "Redirects a PATCH request."
+)]
 async fn redirect_to_patch(
     param: RedirectToQueryParams,
     res: &mut Response,
@@ -69,7 +92,11 @@ async fn redirect_to_patch(
     _redirect_to(param, res)
 }
 
-#[endpoint(tags("Redirects"), status_codes(200, 400, 500))]
+#[endpoint(
+    tags("Redirects"),
+    status_codes(200, 400, 500),
+    description = "Redirects a HEAD request."
+)]
 async fn redirect_to_head(
     param: RedirectToQueryParams,
     res: &mut Response,
@@ -77,7 +104,11 @@ async fn redirect_to_head(
     _redirect_to(param, res)
 }
 
-#[endpoint(tags("Redirects"), status_codes(200, 400, 500))]
+#[endpoint(
+    tags("Redirects"),
+    status_codes(200, 400, 500),
+    description = "Redirects an OPTIONS request."
+)]
 async fn redirect_to_options(
     param: RedirectToQueryParams,
     res: &mut Response,
@@ -85,7 +116,11 @@ async fn redirect_to_options(
     _redirect_to(param, res)
 }
 
-#[endpoint(tags("Redirects"), status_codes(200, 400, 500))]
+#[endpoint(
+    tags("Redirects"),
+    status_codes(200, 400, 500),
+    description = "Creates an absolute redirect chain."
+)]
 async fn absolute_redirect(
     param: RedirectPathParams,
     req: &mut Request,
@@ -111,7 +146,11 @@ async fn absolute_redirect(
     Ok(())
 }
 
-#[endpoint(tags("Redirects"), status_codes(200, 400, 500))]
+#[endpoint(
+    tags("Redirects"),
+    status_codes(200, 400, 500),
+    description = "Creates a relative redirect chain."
+)]
 async fn relative_redirect(
     param: RedirectPathParams,
     req: &mut Request,

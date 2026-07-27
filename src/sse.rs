@@ -18,20 +18,24 @@ const DEFAULT_TIMEOUT: u64 = 30;
 
 #[derive(Serialize, Deserialize, ToParameters, ToSchema, Debug)]
 struct CounterParams {
+    /// Number of events.
     #[salvo(parameter(parameter_in = "path", default = 3))]
     count: u32,
 }
 
 #[derive(Serialize, Deserialize, ToParameters, ToSchema, Debug)]
 struct IntervalParams {
+    /// Interval between events in seconds.
     #[salvo(parameter(parameter_in = "query", default = 0.1, minimum = 0.0))]
     interval: Option<f64>,
 }
 
 #[derive(Serialize, Deserialize, ToParameters, ToSchema, Debug)]
 struct RandomParams {
+    /// Number of events.
     #[salvo(parameter(parameter_in = "path", default = 3))]
     n: u32,
+    /// Random seed.
     #[salvo(parameter(parameter_in = "query"))]
     seed: Option<u64>,
 }
@@ -42,7 +46,11 @@ struct TextRequest {
     text: String,
 }
 
-#[endpoint(tags("SSE"), status_codes(200, 400, 500))]
+#[endpoint(
+    tags("SSE"),
+    status_codes(200, 400, 500),
+    description = "Streams text counter events."
+)]
 async fn counter_text(counter: CounterParams, interval: IntervalParams, res: &mut Response) {
     let count = counter.count;
     let itv = interval.interval.unwrap_or(DEFAULT_INTERVAL);
@@ -60,7 +68,11 @@ async fn counter_text(counter: CounterParams, interval: IntervalParams, res: &mu
         .stream(res);
 }
 
-#[endpoint(tags("SSE"), status_codes(200, 400, 500))]
+#[endpoint(
+    tags("SSE"),
+    status_codes(200, 400, 500),
+    description = "Streams JSON counter events."
+)]
 async fn counter_json(counter: CounterParams, interval: IntervalParams, res: &mut Response) {
     let count = counter.count;
     let itv = interval.interval.unwrap_or(DEFAULT_INTERVAL);
@@ -78,7 +90,11 @@ async fn counter_json(counter: CounterParams, interval: IntervalParams, res: &mu
         .stream(res);
 }
 
-#[endpoint(tags("SSE"), status_codes(200, 400, 500))]
+#[endpoint(
+    tags("SSE"),
+    status_codes(200, 400, 500),
+    description = "Splits the submitted text by line and streams each line as a server-sent event."
+)]
 async fn split_text(
     body: JsonBody<TextRequest>,
     interval: IntervalParams,
@@ -100,7 +116,11 @@ async fn split_text(
     Ok(())
 }
 
-#[endpoint(tags("SSE"), status_codes(200, 400, 500))]
+#[endpoint(
+    tags("SSE"),
+    status_codes(200, 400, 500),
+    description = "Pretty-prints the submitted JSON and streams each line as a server-sent event."
+)]
 async fn split_json(
     body: JsonBody<Value>,
     interval: IntervalParams,
@@ -132,7 +152,11 @@ fn random_string(rng: &mut ChaCha20Rng) -> String {
         .collect()
 }
 
-#[endpoint(tags("SSE"), status_codes(200, 400, 500))]
+#[endpoint(
+    tags("SSE"),
+    status_codes(200, 400, 500),
+    description = "Streams random text events with occasional IDs, names, and comments."
+)]
 async fn random_sse(interval: IntervalParams, rparam: RandomParams, res: &mut Response) {
     let itv = interval.interval.unwrap_or(DEFAULT_INTERVAL);
     let mut rng: ChaCha20Rng = match rparam.seed {

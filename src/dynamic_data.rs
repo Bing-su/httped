@@ -17,22 +17,29 @@ const MAX_BYTES: u32 = 1000000; // 1 MB
 
 #[derive(Serialize, Deserialize, ToParameters, ToSchema, Debug)]
 struct BytesSimpleRequest {
+    /// Number of bytes.
     #[salvo(parameter(parameter_in = "path", minimum = 0, maximum = 1000000, default = 1024))]
     n: u32,
+    /// Random seed.
     #[salvo(parameter(parameter_in = "query", minimum = 0))]
     seed: Option<u64>,
+    /// Download filename.
     #[salvo(parameter(parameter_in = "query", min_length = 1, max_length = 128))]
     filename: Option<String>,
 }
 
 #[derive(Serialize, Deserialize, ToParameters, ToSchema, Debug)]
 struct BytesStreamRequest {
+    /// Number of bytes.
     #[salvo(parameter(parameter_in = "path", minimum = 0, maximum = 1000000, default = 1024))]
     n: u32,
+    /// Random seed.
     #[salvo(parameter(parameter_in = "query", minimum = 0))]
     seed: Option<u64>,
+    /// Chunk size in bytes.
     #[salvo(parameter(parameter_in = "query", minimum = 1, default = 8192))]
     chunk_size: Option<usize>,
+    /// Download filename.
     #[salvo(parameter(parameter_in = "query", min_length = 1, max_length = 128))]
     filename: Option<String>,
 }
@@ -49,6 +56,7 @@ struct UlidResponse {
 
 #[derive(Serialize, Deserialize, ToParameters, ToSchema, Debug)]
 struct DelayRequest {
+    /// Delay in seconds.
     #[salvo(parameter(parameter_in = "path", minimum = 0, maximum = 10, default = 1))]
     seconds: u64,
 }
@@ -66,7 +74,11 @@ fn disposition_header(filename: Option<String>) -> String {
     }
 }
 
-#[endpoint(tags("Dynamic data"), status_codes(200, 400, 500))]
+#[endpoint(
+    tags("Dynamic data"),
+    status_codes(200, 400, 500),
+    description = "Returns random bytes."
+)]
 async fn bytes_simple(param: BytesSimpleRequest, res: &mut Response) -> Result<(), Error> {
     let n = param.n.min(MAX_BYTES) as usize;
     let mut rng: ChaCha20Rng = match param.seed {
@@ -86,7 +98,11 @@ async fn bytes_simple(param: BytesSimpleRequest, res: &mut Response) -> Result<(
     Ok(())
 }
 
-#[endpoint(tags("Dynamic data"), status_codes(200, 400, 500))]
+#[endpoint(
+    tags("Dynamic data"),
+    status_codes(200, 400, 500),
+    description = "Streams random bytes."
+)]
 async fn bytes_stream(param: BytesStreamRequest, res: &mut Response) -> Result<(), Error> {
     let mut rng: ChaCha20Rng = match param.seed {
         Some(seed) => ChaCha20Rng::seed_from_u64(seed),
@@ -122,7 +138,11 @@ async fn bytes_stream(param: BytesStreamRequest, res: &mut Response) -> Result<(
     Ok(())
 }
 
-#[endpoint(tags("Dynamic data"), status_codes(200))]
+#[endpoint(
+    tags("Dynamic data"),
+    status_codes(200),
+    description = "Generates a UUID v4."
+)]
 async fn uuid_v4() -> Json<UuidResponse> {
     let uuid = uuid::Uuid::new_v4();
     Json(UuidResponse {
@@ -130,7 +150,11 @@ async fn uuid_v4() -> Json<UuidResponse> {
     })
 }
 
-#[endpoint(tags("Dynamic data"), status_codes(200))]
+#[endpoint(
+    tags("Dynamic data"),
+    status_codes(200),
+    description = "Generates a UUID v7."
+)]
 async fn uuid_v7() -> Json<UuidResponse> {
     let uuid = uuid::Uuid::now_v7();
     Json(UuidResponse {
@@ -138,7 +162,11 @@ async fn uuid_v7() -> Json<UuidResponse> {
     })
 }
 
-#[endpoint(tags("Dynamic data"), status_codes(200))]
+#[endpoint(
+    tags("Dynamic data"),
+    status_codes(200),
+    description = "Generates a ULID."
+)]
 async fn ulid_() -> Json<UlidResponse> {
     let ulid = ulid::Ulid::generate();
     Json(UlidResponse {
@@ -154,7 +182,11 @@ async fn _delay(param: DelayRequest, req: &mut Request) -> Result<Json<PostRespo
     post(req).await
 }
 
-#[endpoint(tags("Dynamic data"), status_codes(200))]
+#[endpoint(
+    tags("Dynamic data"),
+    status_codes(200),
+    description = "Delays, then echoes a GET request."
+)]
 async fn delay_get(
     param: DelayRequest,
     req: &mut Request,
@@ -162,7 +194,11 @@ async fn delay_get(
     _delay(param, req).await
 }
 
-#[endpoint(tags("Dynamic data"), status_codes(200))]
+#[endpoint(
+    tags("Dynamic data"),
+    status_codes(200),
+    description = "Delays, then echoes a POST request."
+)]
 async fn delay_post(
     param: DelayRequest,
     req: &mut Request,
@@ -170,7 +206,11 @@ async fn delay_post(
     _delay(param, req).await
 }
 
-#[endpoint(tags("Dynamic data"), status_codes(200))]
+#[endpoint(
+    tags("Dynamic data"),
+    status_codes(200),
+    description = "Delays, then echoes a PUT request."
+)]
 async fn delay_put(
     param: DelayRequest,
     req: &mut Request,
@@ -178,7 +218,11 @@ async fn delay_put(
     _delay(param, req).await
 }
 
-#[endpoint(tags("Dynamic data"), status_codes(200))]
+#[endpoint(
+    tags("Dynamic data"),
+    status_codes(200),
+    description = "Delays, then echoes a DELETE request."
+)]
 async fn delay_delete(
     param: DelayRequest,
     req: &mut Request,

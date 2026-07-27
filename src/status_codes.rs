@@ -19,17 +19,29 @@ fn _common(res: &mut Response, code: u16) -> Result<Json<StatusCodeResponse>, Er
     Ok(Json(response))
 }
 
-#[endpoint(tags("Status codes"), status_codes(200, 400))]
+#[endpoint(
+    tags("Status codes"),
+    status_codes(200, 400),
+    description = "Returns the requested status code for GET."
+)]
 async fn get(res: &mut Response, code: PathParam<u16>) -> Result<Json<StatusCodeResponse>, Error> {
     _common(res, code.into_inner())
 }
 
-#[endpoint(tags("Status codes"), status_codes(200, 400))]
+#[endpoint(
+    tags("Status codes"),
+    status_codes(200, 400),
+    description = "Returns the requested status code for POST."
+)]
 async fn post(res: &mut Response, code: PathParam<u16>) -> Result<Json<StatusCodeResponse>, Error> {
     _common(res, code.into_inner())
 }
 
-#[endpoint(tags("Status codes"), status_codes(200, 400))]
+#[endpoint(
+    tags("Status codes"),
+    status_codes(200, 400),
+    description = "Returns the requested status code for DELETE."
+)]
 async fn delete(
     res: &mut Response,
     code: PathParam<u16>,
@@ -37,12 +49,20 @@ async fn delete(
     _common(res, code.into_inner())
 }
 
-#[endpoint(tags("Status codes"), status_codes(200, 400))]
+#[endpoint(
+    tags("Status codes"),
+    status_codes(200, 400),
+    description = "Returns the requested status code for PUT."
+)]
 async fn put(res: &mut Response, code: PathParam<u16>) -> Result<Json<StatusCodeResponse>, Error> {
     _common(res, code.into_inner())
 }
 
-#[endpoint(tags("Status codes"), status_codes(200, 400))]
+#[endpoint(
+    tags("Status codes"),
+    status_codes(200, 400),
+    description = "Returns the requested status code for PATCH."
+)]
 async fn patch(
     res: &mut Response,
     code: PathParam<u16>,
@@ -50,12 +70,20 @@ async fn patch(
     _common(res, code.into_inner())
 }
 
-#[endpoint(tags("Status codes"), status_codes(200, 400))]
+#[endpoint(
+    tags("Status codes"),
+    status_codes(200, 400),
+    description = "Returns the requested status code for HEAD."
+)]
 async fn head(res: &mut Response, code: PathParam<u16>) -> Result<Json<StatusCodeResponse>, Error> {
     _common(res, code.into_inner())
 }
 
-#[endpoint(tags("Status codes"), status_codes(200, 400))]
+#[endpoint(
+    tags("Status codes"),
+    status_codes(200, 400),
+    description = "Returns the requested status code for OPTIONS."
+)]
 async fn options(
     res: &mut Response,
     code: PathParam<u16>,

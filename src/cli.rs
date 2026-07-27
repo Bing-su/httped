@@ -36,7 +36,7 @@ struct ResponseHealth {
     message: String,
 }
 
-#[endpoint]
+#[endpoint(description = "Checks service health.")]
 async fn health() -> Json<ResponseHealth> {
     Json(ResponseHealth {
         message: "ok".to_string(),
