@@ -10,6 +10,8 @@ use salvo::prelude::*;
 use salvo::trailing_slash::remove_slash;
 use serde::{Deserialize, Serialize};
 
+use crate::helper::{PostResponse, post};
+
 const DEFAULT_CHUNK_SIZE: usize = 8 * 1024;
 const MAX_BYTES: u32 = 1000000; // 1 MB
 
@@ -43,6 +45,12 @@ struct UuidResponse {
 #[derive(Serialize, ToSchema, Debug)]
 struct UlidResponse {
     ulid: String,
+}
+
+#[derive(Serialize, Deserialize, ToParameters, ToSchema, Debug)]
+struct DelayRequest {
+    #[salvo(parameter(parameter_in = "path", minimum = 0, maximum = 10, default = 1))]
+    seconds: u64,
 }
 
 fn disposition_header(filename: Option<String>) -> String {
@@ -138,6 +146,46 @@ async fn ulid_() -> Json<UlidResponse> {
     })
 }
 
+async fn _delay(param: DelayRequest, req: &mut Request) -> Result<Json<PostResponse>, StatusError> {
+    let sec = param.seconds.min(10);
+    if sec > 0 {
+        tokio::time::sleep(std::time::Duration::from_secs(sec)).await;
+    }
+    post(req).await
+}
+
+#[endpoint(tags("Dynamic data"), status_codes(200))]
+async fn delay_get(
+    param: DelayRequest,
+    req: &mut Request,
+) -> Result<Json<PostResponse>, StatusError> {
+    _delay(param, req).await
+}
+
+#[endpoint(tags("Dynamic data"), status_codes(200))]
+async fn delay_post(
+    param: DelayRequest,
+    req: &mut Request,
+) -> Result<Json<PostResponse>, StatusError> {
+    _delay(param, req).await
+}
+
+#[endpoint(tags("Dynamic data"), status_codes(200))]
+async fn delay_put(
+    param: DelayRequest,
+    req: &mut Request,
+) -> Result<Json<PostResponse>, StatusError> {
+    _delay(param, req).await
+}
+
+#[endpoint(tags("Dynamic data"), status_codes(200))]
+async fn delay_delete(
+    param: DelayRequest,
+    req: &mut Request,
+) -> Result<Json<PostResponse>, StatusError> {
+    _delay(param, req).await
+}
+
 pub fn dynamic_data_router() -> Router {
     Router::with_hoop(remove_slash())
         .push(Router::with_path("bytes/stream/{n}").get(bytes_stream))
@@ -145,4 +193,8 @@ pub fn dynamic_data_router() -> Router {
         .push(Router::with_path("uuid/v4").get(uuid_v4))
         .push(Router::with_path("uuid/v7").get(uuid_v7))
         .push(Router::with_path("ulid").get(ulid_))
+        .push(Router::with_path("delay/{seconds}").get(delay_get))
+        .push(Router::with_path("delay/{seconds}").post(delay_post))
+        .push(Router::with_path("delay/{seconds}").put(delay_put))
+        .push(Router::with_path("delay/{seconds}").delete(delay_delete))
 }
