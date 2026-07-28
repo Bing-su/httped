@@ -1,0 +1,26 @@
+name: Lint
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: jdx/mise-action@v4
+      - name: Install tools
+        run: mise use -g hk oxfmt tombi
+
+      - name: Lint (Push)
+        if: github.event_name == 'push'
+        run: hk run check --all
+
+      - name: Lint (PR)
+        if: github.event_name == 'pull_request'
+        run: hk run check --pr
