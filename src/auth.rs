@@ -70,7 +70,7 @@ async fn basic_auth(
 #[endpoint(
     tags("Auth"),
     status_codes(200, 400, 401),
-    description = "Validates a Bearer token."
+    description = "Authenticates with HTTP Bearer authentication."
 )]
 async fn bearer_auth(
     authorization: HeaderParam<String, false>,

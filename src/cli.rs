@@ -1,7 +1,6 @@
 use std::time::Duration;
 
 use clap::Parser;
-use salvo::oapi::ToSchema;
 use salvo::prelude::*;
 use salvo::serve_static::static_embed;
 use serde::Serialize;
@@ -32,13 +31,13 @@ pub struct Cli {
 }
 
 #[derive(Serialize, ToSchema, Debug)]
-struct ResponseHealth {
+struct HealthResponse {
     message: String,
 }
 
 #[endpoint(description = "Checks service health.")]
-async fn health() -> Json<ResponseHealth> {
-    Json(ResponseHealth {
+async fn health() -> Json<HealthResponse> {
+    Json(HealthResponse {
         message: "ok".to_string(),
     })
 }
@@ -82,6 +81,7 @@ pub async fn entry() -> Result<(), String> {
     let acceptor = TcpListener::new((args.host.clone(), args.port))
         .try_bind()
         .await;
+
     match acceptor {
         Ok(acceptor) => {
             let server = Server::new(acceptor);
