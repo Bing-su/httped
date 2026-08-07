@@ -2,8 +2,6 @@ use salvo::prelude::*;
 use salvo::trailing_slash::remove_slash;
 use serde::Deserialize;
 
-use crate::rfc9457::ApiResult;
-
 #[derive(Deserialize, ToParameters, Debug)]
 struct RedirectToQueryParams {
     /// Redirect target URL.
@@ -19,7 +17,7 @@ struct RedirectPathParams {
     n: u8,
 }
 
-fn _redirect_to(param: RedirectToQueryParams, res: &mut Response) -> ApiResult<()> {
+fn _redirect_to(param: RedirectToQueryParams, res: &mut Response) -> Result<(), StatusError> {
     let url = param.url;
 
     let code = match param.status_code {
@@ -39,7 +37,10 @@ fn _redirect_to(param: RedirectToQueryParams, res: &mut Response) -> ApiResult<(
     status_codes(200, 400, 500),
     description = "Redirects a GET request."
 )]
-async fn redirect_to_get(param: RedirectToQueryParams, res: &mut Response) -> ApiResult<()> {
+async fn redirect_to_get(
+    param: RedirectToQueryParams,
+    res: &mut Response,
+) -> Result<(), StatusError> {
     _redirect_to(param, res)
 }
 
@@ -48,7 +49,10 @@ async fn redirect_to_get(param: RedirectToQueryParams, res: &mut Response) -> Ap
     status_codes(200, 400, 500),
     description = "Redirects a POST request."
 )]
-async fn redirect_to_post(param: RedirectToQueryParams, res: &mut Response) -> ApiResult<()> {
+async fn redirect_to_post(
+    param: RedirectToQueryParams,
+    res: &mut Response,
+) -> Result<(), StatusError> {
     _redirect_to(param, res)
 }
 
@@ -57,7 +61,10 @@ async fn redirect_to_post(param: RedirectToQueryParams, res: &mut Response) -> A
     status_codes(200, 400, 500),
     description = "Redirects a DELETE request."
 )]
-async fn redirect_to_delete(param: RedirectToQueryParams, res: &mut Response) -> ApiResult<()> {
+async fn redirect_to_delete(
+    param: RedirectToQueryParams,
+    res: &mut Response,
+) -> Result<(), StatusError> {
     _redirect_to(param, res)
 }
 
@@ -66,7 +73,10 @@ async fn redirect_to_delete(param: RedirectToQueryParams, res: &mut Response) ->
     status_codes(200, 400, 500),
     description = "Redirects a PUT request."
 )]
-async fn redirect_to_put(param: RedirectToQueryParams, res: &mut Response) -> ApiResult<()> {
+async fn redirect_to_put(
+    param: RedirectToQueryParams,
+    res: &mut Response,
+) -> Result<(), StatusError> {
     _redirect_to(param, res)
 }
 
@@ -75,7 +85,10 @@ async fn redirect_to_put(param: RedirectToQueryParams, res: &mut Response) -> Ap
     status_codes(200, 400, 500),
     description = "Redirects a PATCH request."
 )]
-async fn redirect_to_patch(param: RedirectToQueryParams, res: &mut Response) -> ApiResult<()> {
+async fn redirect_to_patch(
+    param: RedirectToQueryParams,
+    res: &mut Response,
+) -> Result<(), StatusError> {
     _redirect_to(param, res)
 }
 
@@ -84,7 +97,10 @@ async fn redirect_to_patch(param: RedirectToQueryParams, res: &mut Response) -> 
     status_codes(200, 400, 500),
     description = "Redirects a HEAD request."
 )]
-async fn redirect_to_head(param: RedirectToQueryParams, res: &mut Response) -> ApiResult<()> {
+async fn redirect_to_head(
+    param: RedirectToQueryParams,
+    res: &mut Response,
+) -> Result<(), StatusError> {
     _redirect_to(param, res)
 }
 
@@ -93,7 +109,10 @@ async fn redirect_to_head(param: RedirectToQueryParams, res: &mut Response) -> A
     status_codes(200, 400, 500),
     description = "Redirects an OPTIONS request."
 )]
-async fn redirect_to_options(param: RedirectToQueryParams, res: &mut Response) -> ApiResult<()> {
+async fn redirect_to_options(
+    param: RedirectToQueryParams,
+    res: &mut Response,
+) -> Result<(), StatusError> {
     _redirect_to(param, res)
 }
 
@@ -102,7 +121,10 @@ async fn redirect_to_options(param: RedirectToQueryParams, res: &mut Response) -
     status_codes(200, 400, 500),
     description = "Redirects a QUERY request."
 )]
-async fn redirect_to_query(param: RedirectToQueryParams, res: &mut Response) -> ApiResult<()> {
+async fn redirect_to_query(
+    param: RedirectToQueryParams,
+    res: &mut Response,
+) -> Result<(), StatusError> {
     _redirect_to(param, res)
 }
 
@@ -115,12 +137,10 @@ async fn absolute_redirect(
     param: RedirectPathParams,
     req: &mut Request,
     res: &mut Response,
-) -> ApiResult<()> {
+) -> Result<(), StatusError> {
     let n = param.n;
     if n == 0 {
-        return Err(StatusError::bad_request()
-            .brief("n must be greater than 0")
-            .into());
+        return Err(StatusError::bad_request().brief("n must be greater than 0"));
     }
 
     let uri = req.uri().to_string();
@@ -147,12 +167,10 @@ async fn relative_redirect(
     param: RedirectPathParams,
     req: &mut Request,
     res: &mut Response,
-) -> ApiResult<()> {
+) -> Result<(), StatusError> {
     let n = param.n;
     if n == 0 {
-        return Err(StatusError::bad_request()
-            .brief("n must be greater than 0")
-            .into());
+        return Err(StatusError::bad_request().brief("n must be greater than 0"));
     }
 
     let base = req

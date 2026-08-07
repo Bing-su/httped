@@ -4,13 +4,13 @@ use async_stream::stream;
 use percent_encoding::{NON_ALPHANUMERIC, utf8_percent_encode};
 use rand::prelude::*;
 use rand::rngs::ChaCha20Rng;
+use salvo::Error;
 use salvo::http::header::{CONTENT_DISPOSITION, CONTENT_LENGTH, CONTENT_TYPE};
 use salvo::prelude::*;
 use salvo::trailing_slash::remove_slash;
 use serde::{Deserialize, Serialize};
 
 use crate::helper::{PostResponse, post};
-use crate::rfc9457::ApiResult;
 
 const DEFAULT_CHUNK_SIZE: usize = 8 * 1024;
 const MAX_BYTES: u32 = 1000000; // 1 MB
@@ -79,7 +79,7 @@ fn disposition_header(filename: Option<String>) -> String {
     status_codes(200, 400, 500),
     description = "Returns random bytes."
 )]
-async fn bytes_simple(param: BytesSimpleRequest, res: &mut Response) -> ApiResult<()> {
+async fn bytes_simple(param: BytesSimpleRequest, res: &mut Response) -> Result<(), Error> {
     let n = param.n.min(MAX_BYTES) as usize;
     let mut rng: ChaCha20Rng = match param.seed {
         Some(seed) => ChaCha20Rng::seed_from_u64(seed),
@@ -103,7 +103,7 @@ async fn bytes_simple(param: BytesSimpleRequest, res: &mut Response) -> ApiResul
     status_codes(200, 400, 500),
     description = "Streams random bytes."
 )]
-async fn bytes_stream(param: BytesStreamRequest, res: &mut Response) -> ApiResult<()> {
+async fn bytes_stream(param: BytesStreamRequest, res: &mut Response) -> Result<(), Error> {
     let mut rng: ChaCha20Rng = match param.seed {
         Some(seed) => ChaCha20Rng::seed_from_u64(seed),
         None => rand::make_rng(),
@@ -174,7 +174,7 @@ async fn ulid_() -> Json<UlidResponse> {
     })
 }
 
-async fn _delay(param: DelayRequest, req: &mut Request) -> ApiResult<Json<PostResponse>> {
+async fn _delay(param: DelayRequest, req: &mut Request) -> Result<Json<PostResponse>, StatusError> {
     let sec = param.seconds.min(10);
     if sec > 0 {
         tokio::time::sleep(std::time::Duration::from_secs(sec)).await;
@@ -187,7 +187,10 @@ async fn _delay(param: DelayRequest, req: &mut Request) -> ApiResult<Json<PostRe
     status_codes(200),
     description = "Delays, then echoes a GET request."
 )]
-async fn delay_get(param: DelayRequest, req: &mut Request) -> ApiResult<Json<PostResponse>> {
+async fn delay_get(
+    param: DelayRequest,
+    req: &mut Request,
+) -> Result<Json<PostResponse>, StatusError> {
     _delay(param, req).await
 }
 
@@ -196,7 +199,10 @@ async fn delay_get(param: DelayRequest, req: &mut Request) -> ApiResult<Json<Pos
     status_codes(200),
     description = "Delays, then echoes a POST request."
 )]
-async fn delay_post(param: DelayRequest, req: &mut Request) -> ApiResult<Json<PostResponse>> {
+async fn delay_post(
+    param: DelayRequest,
+    req: &mut Request,
+) -> Result<Json<PostResponse>, StatusError> {
     _delay(param, req).await
 }
 
@@ -205,7 +211,10 @@ async fn delay_post(param: DelayRequest, req: &mut Request) -> ApiResult<Json<Po
     status_codes(200),
     description = "Delays, then echoes a PUT request."
 )]
-async fn delay_put(param: DelayRequest, req: &mut Request) -> ApiResult<Json<PostResponse>> {
+async fn delay_put(
+    param: DelayRequest,
+    req: &mut Request,
+) -> Result<Json<PostResponse>, StatusError> {
     _delay(param, req).await
 }
 
@@ -214,7 +223,10 @@ async fn delay_put(param: DelayRequest, req: &mut Request) -> ApiResult<Json<Pos
     status_codes(200),
     description = "Delays, then echoes a DELETE request."
 )]
-async fn delay_delete(param: DelayRequest, req: &mut Request) -> ApiResult<Json<PostResponse>> {
+async fn delay_delete(
+    param: DelayRequest,
+    req: &mut Request,
+) -> Result<Json<PostResponse>, StatusError> {
     _delay(param, req).await
 }
 
@@ -223,7 +235,10 @@ async fn delay_delete(param: DelayRequest, req: &mut Request) -> ApiResult<Json<
     status_codes(200),
     description = "Delays, then echoes a QUERY request."
 )]
-async fn delay_query(param: DelayRequest, req: &mut Request) -> ApiResult<Json<PostResponse>> {
+async fn delay_query(
+    param: DelayRequest,
+    req: &mut Request,
+) -> Result<Json<PostResponse>, StatusError> {
     _delay(param, req).await
 }
 

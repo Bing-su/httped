@@ -1,14 +1,13 @@
 use std::sync::LazyLock;
 
 use regex::Regex;
+use salvo::Error;
 use salvo::basic_auth::{BasicAuth, BasicAuthValidator};
 use salvo::oapi::ToSchema;
 use salvo::oapi::extract::*;
 use salvo::prelude::*;
 use salvo::trailing_slash::remove_slash;
 use serde::Serialize;
-
-use crate::rfc9457::ApiResult;
 
 static BEARER_REGEX: LazyLock<Regex> = LazyLock::new(|| {
     Regex::new(r"^Bearer\s+(?P<token>[A-Za-z0-9\-\._~\+/]+=*)$").expect("Must be a valid regex")
@@ -60,7 +59,7 @@ struct BearerResponse {
 async fn basic_auth(
     username: PathParam<String>,
     password: PathParam<String>,
-) -> ApiResult<Json<BasicAuthResponse>> {
+) -> Result<Json<BasicAuthResponse>, Error> {
     let response = BasicAuthResponse {
         authenticated: true,
         user: username.into_inner(),
@@ -73,7 +72,9 @@ async fn basic_auth(
     status_codes(200, 400, 401),
     description = "Authenticates with HTTP Bearer authentication."
 )]
-async fn bearer_auth(authorization: HeaderParam<String, false>) -> ApiResult<Json<BearerResponse>> {
+async fn bearer_auth(
+    authorization: HeaderParam<String, false>,
+) -> Result<Json<BearerResponse>, StatusError> {
     let header = authorization
         .into_inner()
         .ok_or_else(|| StatusError::unauthorized().brief("Missing authorization header"))?;

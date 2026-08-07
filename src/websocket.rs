@@ -3,15 +3,13 @@ use salvo::trailing_slash::remove_slash;
 use salvo::websocket::WebSocketUpgrade;
 use tracing;
 
-use crate::rfc9457::ApiResult;
-
 #[endpoint(
     tags("Websocket"),
     status_codes(200, 400, 500),
     description = "Echoes Websocket messages."
 )]
-async fn echo(req: &mut Request, res: &mut Response) -> ApiResult<()> {
-    Ok(WebSocketUpgrade::new()
+async fn echo(req: &mut Request, res: &mut Response) -> Result<(), StatusError> {
+    WebSocketUpgrade::new()
         .upgrade(req, res, |mut ws| async move {
             while let Some(msg) = ws.recv().await {
                 let msg = if let Ok(msg) = msg {
@@ -27,7 +25,7 @@ async fn echo(req: &mut Request, res: &mut Response) -> ApiResult<()> {
                 }
             }
         })
-        .await?)
+        .await
 }
 
 pub fn ws_router() -> Router {
