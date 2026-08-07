@@ -2,6 +2,8 @@
 name = "httped"
 version = "0.1.0"
 edition = "2024"
+description = "An HTTP request and response testing service"
+repository = "https://github.com/Bing-su/httped"
 
 [dependencies]
 async-stream = "0.3"
