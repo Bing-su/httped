@@ -56,8 +56,7 @@ pub fn build_router() -> Router {
         .push(dynamic_data::dynamic_data_router())
         .push(Router::with_path("asset/{*path}").get(static_embed::<Asset>()));
 
-    let mut doc = OpenApi::new(PROJECT_NAME, PROJECT_VERSION).merge_router(&router);
-    status_codes::document(&mut doc);
+    let doc = OpenApi::new(PROJECT_NAME, PROJECT_VERSION).merge_router(&router);
 
     let openapi = Scalar::new("openapi.json").lib_url("asset/scalar.js");
 

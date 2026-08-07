@@ -135,14 +135,14 @@ mod tests {
             .send(&service)
             .await;
         assert_eq!(response.status_code, Some(StatusCode::NOT_FOUND));
-        assert_eq!(
-            response.headers()[CONTENT_TYPE],
-            "application/json; charset=utf-8"
-        );
-        assert_eq!(
-            response.take_json::<Value>().await.unwrap(),
-            json!({"code": 404})
-        );
+        assert_eq!(response.headers()[CONTENT_TYPE], PROBLEM_JSON);
+        assert_eq!(response.take_json::<Value>().await.unwrap()["status"], 404);
+
+        let mut response = TestClient::get("http://localhost/status/get/200")
+            .send(&service)
+            .await;
+        assert_eq!(response.status_code, Some(StatusCode::OK));
+        assert_eq!(response.take_string().await.unwrap(), "");
 
         let mut response = TestClient::get("http://localhost/openapi.json")
             .send(&service)
@@ -157,8 +157,8 @@ mod tests {
             assert_eq!(content.as_object().unwrap().len(), 1);
         }
         let status = &doc["paths"]["/status/get/{code}"]["get"]["responses"]["400"]["content"];
-        assert!(status.get("application/json").is_some());
         assert!(status.get(PROBLEM_JSON).is_some());
+        assert_eq!(status.as_object().unwrap().len(), 1);
     }
 
     #[tokio::test]
@@ -180,8 +180,8 @@ mod tests {
             .await;
         assert_eq!(response.status_code, Some(StatusCode::NOT_FOUND));
         assert_eq!(
-            response.take_json::<Value>().await.unwrap(),
-            json!({"code": 404})
+            response.take_json::<Value>().await.unwrap()["instance"],
+            "/api/status/get/404"
         );
 
         let mut response = TestClient::get("http://localhost/api/status/get/9999")
