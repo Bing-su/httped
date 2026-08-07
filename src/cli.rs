@@ -11,6 +11,7 @@ use crate::helper::Asset;
 use crate::http_methods;
 use crate::redirect;
 use crate::request_inspection;
+use crate::rfc9457;
 use crate::sse;
 use crate::status_codes;
 use crate::websocket;
@@ -55,7 +56,8 @@ pub fn build_router() -> Router {
         .push(dynamic_data::dynamic_data_router())
         .push(Router::with_path("asset/{*path}").get(static_embed::<Asset>()));
 
-    let doc = OpenApi::new(PROJECT_NAME, PROJECT_VERSION).merge_router(&router);
+    let mut doc = OpenApi::new(PROJECT_NAME, PROJECT_VERSION).merge_router(&router);
+    status_codes::document(&mut doc);
 
     let openapi = Scalar::new("openapi.json").lib_url("asset/scalar.js");
 
@@ -68,6 +70,7 @@ pub fn build_service() -> Service {
     let router = build_router();
 
     Service::new(router)
+        .catcher(rfc9457::catcher())
         .hoop(Logger::new())
         .hoop(Compression::new())
 }

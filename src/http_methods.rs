@@ -2,14 +2,15 @@ use salvo::prelude::*;
 use salvo::trailing_slash::remove_slash;
 
 use crate::helper::{GetResponse, PostResponse, get as helper_get, post as helper_post};
+use crate::rfc9457::ApiResult;
 
 #[endpoint(
     tags("Http methods"),
     status_codes(200, 400, 500),
     description = "Returns request information."
 )]
-async fn get(req: &mut Request) -> Json<GetResponse> {
-    helper_get(req)
+async fn get(req: &mut Request) -> ApiResult<Json<GetResponse>> {
+    Ok(helper_get(req))
 }
 
 #[endpoint(
@@ -17,7 +18,7 @@ async fn get(req: &mut Request) -> Json<GetResponse> {
     status_codes(200, 400, 500),
     description = "Echoes a POST request."
 )]
-pub async fn post(req: &mut Request) -> Result<Json<PostResponse>, StatusError> {
+pub async fn post(req: &mut Request) -> ApiResult<Json<PostResponse>> {
     helper_post(req).await
 }
 
@@ -26,7 +27,7 @@ pub async fn post(req: &mut Request) -> Result<Json<PostResponse>, StatusError> 
     status_codes(200, 400, 500),
     description = "Echoes a DELETE request."
 )]
-pub async fn delete(req: &mut Request) -> Result<Json<PostResponse>, StatusError> {
+pub async fn delete(req: &mut Request) -> ApiResult<Json<PostResponse>> {
     helper_post(req).await
 }
 
@@ -35,7 +36,7 @@ pub async fn delete(req: &mut Request) -> Result<Json<PostResponse>, StatusError
     status_codes(200, 400, 500),
     description = "Echoes a PUT request."
 )]
-pub async fn put(req: &mut Request) -> Result<Json<PostResponse>, StatusError> {
+pub async fn put(req: &mut Request) -> ApiResult<Json<PostResponse>> {
     helper_post(req).await
 }
 
@@ -44,7 +45,7 @@ pub async fn put(req: &mut Request) -> Result<Json<PostResponse>, StatusError> {
     status_codes(200, 400, 500),
     description = "Echoes a PATCH request."
 )]
-pub async fn patch(req: &mut Request) -> Result<Json<PostResponse>, StatusError> {
+pub async fn patch(req: &mut Request) -> ApiResult<Json<PostResponse>> {
     helper_post(req).await
 }
 
@@ -53,8 +54,8 @@ pub async fn patch(req: &mut Request) -> Result<Json<PostResponse>, StatusError>
     status_codes(200, 400, 500),
     description = "Returns request information without a body."
 )]
-pub async fn head(req: &mut Request) -> Json<GetResponse> {
-    helper_get(req)
+pub async fn head(req: &mut Request) -> ApiResult<Json<GetResponse>> {
+    Ok(helper_get(req))
 }
 
 #[endpoint(
@@ -62,7 +63,7 @@ pub async fn head(req: &mut Request) -> Json<GetResponse> {
     status_codes(200, 400, 500),
     description = "Echoes an OPTIONS request."
 )]
-pub async fn options(req: &mut Request) -> Result<Json<PostResponse>, StatusError> {
+pub async fn options(req: &mut Request) -> ApiResult<Json<PostResponse>> {
     helper_post(req).await
 }
 
@@ -71,7 +72,7 @@ pub async fn options(req: &mut Request) -> Result<Json<PostResponse>, StatusErro
     status_codes(200, 400, 500),
     description = "Echoes a QUERY request."
 )]
-pub async fn query(req: &mut Request) -> Result<Json<PostResponse>, StatusError> {
+pub async fn query(req: &mut Request) -> ApiResult<Json<PostResponse>> {
     helper_post(req).await
 }
 

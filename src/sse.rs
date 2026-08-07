@@ -13,6 +13,8 @@ use salvo::trailing_slash::remove_slash;
 use serde::{Deserialize, Serialize};
 use serde_json::{Value, json};
 
+use crate::rfc9457::ApiResult;
+
 const DEFAULT_INTERVAL: f64 = 0.1;
 const DEFAULT_TIMEOUT: u64 = 30;
 
@@ -51,7 +53,11 @@ struct TextRequest {
     status_codes(200, 400, 500),
     description = "Streams text counter events."
 )]
-async fn counter_text(counter: CounterParams, interval: IntervalParams, res: &mut Response) {
+async fn counter_text(
+    counter: CounterParams,
+    interval: IntervalParams,
+    res: &mut Response,
+) -> ApiResult<()> {
     let count = counter.count;
     let itv = interval.interval.unwrap_or(DEFAULT_INTERVAL);
     let event_stream = stream! {
@@ -66,6 +72,7 @@ async fn counter_text(counter: CounterParams, interval: IntervalParams, res: &mu
         .max_interval(Duration::from_secs(5))
         .comment(format!("/sse/counter/text/{}", count))
         .stream(res);
+    Ok(())
 }
 
 #[endpoint(
@@ -73,7 +80,11 @@ async fn counter_text(counter: CounterParams, interval: IntervalParams, res: &mu
     status_codes(200, 400, 500),
     description = "Streams JSON counter events."
 )]
-async fn counter_json(counter: CounterParams, interval: IntervalParams, res: &mut Response) {
+async fn counter_json(
+    counter: CounterParams,
+    interval: IntervalParams,
+    res: &mut Response,
+) -> ApiResult<()> {
     let count = counter.count;
     let itv = interval.interval.unwrap_or(DEFAULT_INTERVAL);
     let event_stream = stream! {
@@ -88,6 +99,7 @@ async fn counter_json(counter: CounterParams, interval: IntervalParams, res: &mu
         .max_interval(Duration::from_secs(5))
         .comment(format!("/sse/counter/json/{}", count))
         .stream(res);
+    Ok(())
 }
 
 #[endpoint(
@@ -99,7 +111,7 @@ async fn split_text(
     body: JsonBody<TextRequest>,
     interval: IntervalParams,
     res: &mut Response,
-) -> Result<(), StatusError> {
+) -> ApiResult<()> {
     let itv = interval.interval.unwrap_or(DEFAULT_INTERVAL);
     let event_stream = stream! {
         for line in body.text.lines() {
@@ -125,7 +137,7 @@ async fn split_json(
     body: JsonBody<Value>,
     interval: IntervalParams,
     res: &mut Response,
-) -> Result<(), StatusError> {
+) -> ApiResult<()> {
     let itv = interval.interval.unwrap_or(DEFAULT_INTERVAL);
     let json_text = serde_json::to_string_pretty(&body.into_inner())
         .map_err(|e| StatusError::internal_server_error().brief(e.to_string()))?;
@@ -157,7 +169,11 @@ fn random_string(rng: &mut ChaCha20Rng) -> String {
     status_codes(200, 400, 500),
     description = "Streams random text events with occasional IDs, names, and comments."
 )]
-async fn random_sse(interval: IntervalParams, rparam: RandomParams, res: &mut Response) {
+async fn random_sse(
+    interval: IntervalParams,
+    rparam: RandomParams,
+    res: &mut Response,
+) -> ApiResult<()> {
     let itv = interval.interval.unwrap_or(DEFAULT_INTERVAL);
     let mut rng: ChaCha20Rng = match rparam.seed {
         Some(seed) => ChaCha20Rng::seed_from_u64(seed),
@@ -197,6 +213,7 @@ async fn random_sse(interval: IntervalParams, rparam: RandomParams, res: &mut Re
         .max_interval(Duration::from_secs(5))
         .comment(format!("/sse/random-string/{num_events}"))
         .stream(res);
+    Ok(())
 }
 
 pub fn sse_router() -> Router {

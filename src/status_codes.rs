@@ -1,19 +1,19 @@
-use salvo::Error;
 use salvo::oapi::extract::*;
+use salvo::oapi::{OpenApi, RefOr};
 use salvo::prelude::*;
 use salvo::trailing_slash::remove_slash;
 use serde::Serialize;
+
+use crate::rfc9457::ApiResult;
 
 #[derive(Serialize, ToSchema)]
 struct StatusCodeResponse {
     code: u16,
 }
 
-fn _common(res: &mut Response, code: u16) -> Result<Json<StatusCodeResponse>, Error> {
+fn _common(res: &mut Response, code: u16) -> ApiResult<Json<StatusCodeResponse>> {
     res.status_code(StatusCode::from_u16(code).map_err(|_| {
-        Error::HttpStatus(
-            StatusError::bad_request().brief("status code must be between 100 and 999"),
-        )
+        StatusError::bad_request().brief("status code must be between 100 and 999")
     })?);
     let response = StatusCodeResponse { code };
     Ok(Json(response))
@@ -24,7 +24,7 @@ fn _common(res: &mut Response, code: u16) -> Result<Json<StatusCodeResponse>, Er
     status_codes(200, 400),
     description = "Returns the requested status code for GET."
 )]
-async fn get(res: &mut Response, code: PathParam<u16>) -> Result<Json<StatusCodeResponse>, Error> {
+async fn get(res: &mut Response, code: PathParam<u16>) -> ApiResult<Json<StatusCodeResponse>> {
     _common(res, code.into_inner())
 }
 
@@ -33,7 +33,7 @@ async fn get(res: &mut Response, code: PathParam<u16>) -> Result<Json<StatusCode
     status_codes(200, 400),
     description = "Returns the requested status code for POST."
 )]
-async fn post(res: &mut Response, code: PathParam<u16>) -> Result<Json<StatusCodeResponse>, Error> {
+async fn post(res: &mut Response, code: PathParam<u16>) -> ApiResult<Json<StatusCodeResponse>> {
     _common(res, code.into_inner())
 }
 
@@ -42,10 +42,7 @@ async fn post(res: &mut Response, code: PathParam<u16>) -> Result<Json<StatusCod
     status_codes(200, 400),
     description = "Returns the requested status code for DELETE."
 )]
-async fn delete(
-    res: &mut Response,
-    code: PathParam<u16>,
-) -> Result<Json<StatusCodeResponse>, Error> {
+async fn delete(res: &mut Response, code: PathParam<u16>) -> ApiResult<Json<StatusCodeResponse>> {
     _common(res, code.into_inner())
 }
 
@@ -54,7 +51,7 @@ async fn delete(
     status_codes(200, 400),
     description = "Returns the requested status code for PUT."
 )]
-async fn put(res: &mut Response, code: PathParam<u16>) -> Result<Json<StatusCodeResponse>, Error> {
+async fn put(res: &mut Response, code: PathParam<u16>) -> ApiResult<Json<StatusCodeResponse>> {
     _common(res, code.into_inner())
 }
 
@@ -63,10 +60,7 @@ async fn put(res: &mut Response, code: PathParam<u16>) -> Result<Json<StatusCode
     status_codes(200, 400),
     description = "Returns the requested status code for PATCH."
 )]
-async fn patch(
-    res: &mut Response,
-    code: PathParam<u16>,
-) -> Result<Json<StatusCodeResponse>, Error> {
+async fn patch(res: &mut Response, code: PathParam<u16>) -> ApiResult<Json<StatusCodeResponse>> {
     _common(res, code.into_inner())
 }
 
@@ -75,7 +69,7 @@ async fn patch(
     status_codes(200, 400),
     description = "Returns the requested status code for HEAD."
 )]
-async fn head(res: &mut Response, code: PathParam<u16>) -> Result<Json<StatusCodeResponse>, Error> {
+async fn head(res: &mut Response, code: PathParam<u16>) -> ApiResult<Json<StatusCodeResponse>> {
     _common(res, code.into_inner())
 }
 
@@ -84,10 +78,7 @@ async fn head(res: &mut Response, code: PathParam<u16>) -> Result<Json<StatusCod
     status_codes(200, 400),
     description = "Returns the requested status code for OPTIONS."
 )]
-async fn options(
-    res: &mut Response,
-    code: PathParam<u16>,
-) -> Result<Json<StatusCodeResponse>, Error> {
+async fn options(res: &mut Response, code: PathParam<u16>) -> ApiResult<Json<StatusCodeResponse>> {
     _common(res, code.into_inner())
 }
 
@@ -96,10 +87,7 @@ async fn options(
     status_codes(200, 400),
     description = "Returns the requested status code for QUERY."
 )]
-async fn query(
-    res: &mut Response,
-    code: PathParam<u16>,
-) -> Result<Json<StatusCodeResponse>, Error> {
+async fn query(res: &mut Response, code: PathParam<u16>) -> ApiResult<Json<StatusCodeResponse>> {
     _common(res, code.into_inner())
 }
 
@@ -113,4 +101,27 @@ pub fn status_codes_router() -> Router {
         .push(Router::with_path("status/head/{code}").head(head))
         .push(Router::with_path("status/options/{code}").options(options))
         .push(Router::with_path("status/query/{code}").query(query))
+}
+
+pub(crate) fn document(doc: &mut OpenApi) {
+    for (path, item) in doc.paths.iter_mut() {
+        if !path.starts_with("/status/") {
+            continue;
+        }
+        for operation in item.operations.values_mut() {
+            let success_contents =
+                operation
+                    .responses
+                    .get("200")
+                    .and_then(|response| match response {
+                        RefOr::Type(response) => Some(response.contents.clone()),
+                        RefOr::Ref(_) => None,
+                    });
+            if let (Some(contents), Some(RefOr::Type(response))) =
+                (success_contents, operation.responses.get_mut("400"))
+            {
+                response.contents.extend(contents);
+            }
+        }
+    }
 }

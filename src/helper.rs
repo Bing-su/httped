@@ -7,6 +7,8 @@ use salvo::prelude::*;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 
+use crate::rfc9457::ApiResult;
+
 const DEFAULT_PAYLOAD_MAX_SIZE: usize = 1024 * 1024; // 1 MB
 
 #[derive(Serialize, Deserialize, Debug, ToSchema)]
@@ -60,7 +62,7 @@ pub(crate) fn get(req: &mut Request) -> Json<GetResponse> {
     Json(response)
 }
 
-pub(crate) async fn post(req: &mut Request) -> Result<Json<PostResponse>, StatusError> {
+pub(crate) async fn post(req: &mut Request) -> ApiResult<Json<PostResponse>> {
     let queries: BTreeMap<String, String> = req.parse_queries().unwrap_or_default();
     let headers: BTreeMap<String, String> = req.parse_headers().unwrap_or_default();
     let url: String = req.uri().to_string();
