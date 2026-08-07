@@ -119,6 +119,18 @@ async fn redirect_to_options(
 #[endpoint(
     tags("Redirects"),
     status_codes(200, 400, 500),
+    description = "Redirects a QUERY request."
+)]
+async fn redirect_to_query(
+    param: RedirectToQueryParams,
+    res: &mut Response,
+) -> Result<(), StatusError> {
+    _redirect_to(param, res)
+}
+
+#[endpoint(
+    tags("Redirects"),
+    status_codes(200, 400, 500),
     description = "Creates an absolute redirect chain."
 )]
 async fn absolute_redirect(
@@ -185,7 +197,8 @@ pub fn redirect_router() -> Router {
                 .put(redirect_to_put)
                 .patch(redirect_to_patch)
                 .head(redirect_to_head)
-                .options(redirect_to_options),
+                .options(redirect_to_options)
+                .query(redirect_to_query),
         )
         .push(Router::with_path("absolute-redirect/{n}").get(absolute_redirect))
         .push(Router::with_path("relative-redirect/{n}").get(relative_redirect))

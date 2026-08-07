@@ -84,4 +84,5 @@ pub fn http_methods_router() -> Router {
         .push(Router::with_path("patch").patch(patch))
         .push(Router::with_path("head").head(head))
         .push(Router::with_path("options").options(options))
+        .push(Router::with_path("query").query(query))
 }

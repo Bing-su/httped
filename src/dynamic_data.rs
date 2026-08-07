@@ -230,6 +230,18 @@ async fn delay_delete(
     _delay(param, req).await
 }
 
+#[endpoint(
+    tags("Dynamic data"),
+    status_codes(200),
+    description = "Delays, then echoes a QUERY request."
+)]
+async fn delay_query(
+    param: DelayRequest,
+    req: &mut Request,
+) -> Result<Json<PostResponse>, StatusError> {
+    _delay(param, req).await
+}
+
 pub fn dynamic_data_router() -> Router {
     Router::with_hoop(remove_slash())
         .push(Router::with_path("bytes/stream/{n}").get(bytes_stream))
@@ -241,4 +253,5 @@ pub fn dynamic_data_router() -> Router {
         .push(Router::with_path("delay/{seconds}").post(delay_post))
         .push(Router::with_path("delay/{seconds}").put(delay_put))
         .push(Router::with_path("delay/{seconds}").delete(delay_delete))
+        .push(Router::with_path("delay/{seconds}").query(delay_query))
 }

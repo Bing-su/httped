@@ -91,6 +91,18 @@ async fn options(
     _common(res, code.into_inner())
 }
 
+#[endpoint(
+    tags("Status codes"),
+    status_codes(200, 400),
+    description = "Returns the requested status code for QUERY."
+)]
+async fn query(
+    res: &mut Response,
+    code: PathParam<u16>,
+) -> Result<Json<StatusCodeResponse>, Error> {
+    _common(res, code.into_inner())
+}
+
 pub fn status_codes_router() -> Router {
     Router::with_hoop(remove_slash())
         .push(Router::with_path("status/get/{code}").get(get))
@@ -100,4 +112,5 @@ pub fn status_codes_router() -> Router {
         .push(Router::with_path("status/patch/{code}").patch(patch))
         .push(Router::with_path("status/head/{code}").head(head))
         .push(Router::with_path("status/options/{code}").options(options))
+        .push(Router::with_path("status/query/{code}").query(query))
 }
