@@ -9,7 +9,6 @@ use rand::seq::IndexedRandom;
 use salvo::oapi::extract::*;
 use salvo::prelude::*;
 use salvo::sse::{SseEvent, SseKeepAlive};
-use salvo::trailing_slash::remove_slash;
 use serde::{Deserialize, Serialize};
 use serde_json::{Value, json};
 
@@ -200,7 +199,7 @@ async fn random_sse(interval: IntervalParams, rparam: RandomParams, res: &mut Re
 }
 
 pub fn sse_router() -> Router {
-    Router::with_hoop(remove_slash())
+    Router::new()
         .hoop(Timeout::new(Duration::from_secs(DEFAULT_TIMEOUT)))
         .push(Router::with_path("sse/counter/text/{count}").get(counter_text))
         .push(Router::with_path("sse/counter/json/{count}").get(counter_json))

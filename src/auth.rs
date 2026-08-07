@@ -1,12 +1,10 @@
 use std::sync::LazyLock;
 
 use regex::Regex;
-use salvo::Error;
 use salvo::basic_auth::{BasicAuth, BasicAuthValidator};
 use salvo::oapi::ToSchema;
 use salvo::oapi::extract::*;
 use salvo::prelude::*;
-use salvo::trailing_slash::remove_slash;
 use serde::Serialize;
 
 static BEARER_REGEX: LazyLock<Regex> = LazyLock::new(|| {
@@ -59,7 +57,7 @@ struct BearerResponse {
 async fn basic_auth(
     username: PathParam<String>,
     password: PathParam<String>,
-) -> Result<Json<BasicAuthResponse>, Error> {
+) -> Result<Json<BasicAuthResponse>, StatusError> {
     let response = BasicAuthResponse {
         authenticated: true,
         user: username.into_inner(),
@@ -98,7 +96,7 @@ pub fn auth_router() -> Router {
         .hoop(auth_handler)
         .push(Router::with_path("basic-auth/{username}/{password}").get(basic_auth));
     let bearer_auth_router = Router::new().push(Router::with_path("bearer").get(bearer_auth));
-    Router::with_hoop(remove_slash())
+    Router::new()
         .push(basic_auth_router)
         .push(bearer_auth_router)
 }

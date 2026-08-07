@@ -1,5 +1,4 @@
 use salvo::prelude::*;
-use salvo::trailing_slash::remove_slash;
 use serde::Deserialize;
 
 #[derive(Deserialize, ToParameters, Debug)]
@@ -188,7 +187,7 @@ async fn relative_redirect(
 }
 
 pub fn redirect_router() -> Router {
-    Router::with_hoop(remove_slash())
+    Router::new()
         .push(
             Router::with_path("redirect-to")
                 .get(redirect_to_get)

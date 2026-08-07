@@ -7,7 +7,6 @@ use rand::rngs::ChaCha20Rng;
 use salvo::Error;
 use salvo::http::header::{CONTENT_DISPOSITION, CONTENT_LENGTH, CONTENT_TYPE};
 use salvo::prelude::*;
-use salvo::trailing_slash::remove_slash;
 use serde::{Deserialize, Serialize};
 
 use crate::helper::{PostResponse, post};
@@ -243,7 +242,7 @@ async fn delay_query(
 }
 
 pub fn dynamic_data_router() -> Router {
-    Router::with_hoop(remove_slash())
+    Router::new()
         .push(Router::with_path("bytes/stream/{n}").get(bytes_stream))
         .push(Router::with_path("bytes/{n}").get(bytes_simple))
         .push(Router::with_path("uuid/v4").get(uuid_v4))

@@ -1,5 +1,4 @@
 use salvo::prelude::*;
-use salvo::trailing_slash::remove_slash;
 use salvo::websocket::WebSocketUpgrade;
 use tracing;
 
@@ -29,7 +28,7 @@ async fn echo(req: &mut Request, res: &mut Response) -> Result<(), StatusError> 
 }
 
 pub fn ws_router() -> Router {
-    Router::with_hoop(remove_slash()).push(Router::with_path("ws/echo").get(echo))
+    Router::new().push(Router::with_path("ws/echo").get(echo))
 }
 
 #[cfg(test)]

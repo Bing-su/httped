@@ -1,5 +1,4 @@
 use salvo::prelude::*;
-use salvo::trailing_slash::remove_slash;
 
 use crate::helper::{GetResponse, PostResponse, get as helper_get, post as helper_post};
 
@@ -76,7 +75,7 @@ pub async fn query(req: &mut Request) -> Result<Json<PostResponse>, StatusError>
 }
 
 pub fn http_methods_router() -> Router {
-    Router::with_hoop(remove_slash())
+    Router::new()
         .push(Router::with_path("get").get(get))
         .push(Router::with_path("post").post(post))
         .push(Router::with_path("delete").delete(delete))

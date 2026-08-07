@@ -1,3 +1,5 @@
+#![deny(unsafe_code)]
+
 pub mod auth;
 pub mod cli;
 pub mod dynamic_data;

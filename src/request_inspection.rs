@@ -1,5 +1,4 @@
 use salvo::prelude::*;
-use salvo::trailing_slash::remove_slash;
 use serde::Serialize;
 
 use std::collections::BTreeMap;
@@ -53,7 +52,7 @@ async fn user_agent_(req: &mut Request) -> Json<UserAgentResponse> {
 }
 
 pub fn request_inspection_router() -> Router {
-    Router::with_hoop(remove_slash())
+    Router::new()
         .push(Router::with_path("headers").get(headers_))
         .push(Router::with_path("ip").get(ip_))
         .push(Router::with_path("user-agent").get(user_agent_))

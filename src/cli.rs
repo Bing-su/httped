@@ -3,6 +3,7 @@ use std::time::Duration;
 use clap::Parser;
 use salvo::prelude::*;
 use salvo::serve_static::static_embed;
+use salvo::trailing_slash::remove_slash;
 use serde::Serialize;
 
 use crate::auth;
@@ -43,7 +44,7 @@ async fn health() -> Json<HealthResponse> {
 }
 
 pub fn build_router() -> Router {
-    let router = Router::new()
+    let router = Router::with_hoop(remove_slash())
         .push(Router::with_path("health").get(health))
         .push(http_methods::http_methods_router())
         .push(auth::auth_router())
@@ -98,7 +99,7 @@ pub async fn entry() -> Result<(), String> {
         }
         Err(e) => {
             let msg = format!("Failed to bind to {}:{} - {}", args.host, args.port, e);
-            tracing::error!("{}", msg);
+            tracing::error!(msg);
             return Err(msg);
         }
     }
